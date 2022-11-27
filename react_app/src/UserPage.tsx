@@ -58,11 +58,12 @@ export function UserPage({getToken, getUser}) {
                             const s = await get("http://127.0.0.1:8000/rmdir/" + user + '/' + text + '?' + new URLSearchParams({
                                 token: getToken(),
                                 user: getUser()
-                            }))
-                                .then((res) => res.status)
-                            if (s === 200) {
-                                setNeedToRefetch(true)
+                            })).then(value => value.data).catch(value => value.response)
+                            if(s.data){
+                                message.error(s.data)
+                            }else {
                                 message.success(`Removed ${text}`)
+                                setNeedToRefetch(true)
                             }
                         }}>
                             <DeleteOutlined/>

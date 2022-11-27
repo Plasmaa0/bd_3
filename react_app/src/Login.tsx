@@ -37,7 +37,7 @@ export function Login({setToken, setUser, setRole}) {
             setToken(token);
             setUser(values['username']);
             setRole(await jsonData['role']);
-            navigate('/');
+            window.location.reload();
         }
     }
     const isPasswordCorrect = function (values: any) {
@@ -61,7 +61,7 @@ export function Login({setToken, setUser, setRole}) {
     }
 
     return (
-        <div style={{display:"flex", alignItems:"center", flexDirection:"column"}}>
+        <div style={{display: "flex", alignItems: "center", flexDirection: "column"}}>
             <Typography.Title>Please Log In</Typography.Title>
             <Form
                 name="basic"

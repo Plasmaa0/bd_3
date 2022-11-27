@@ -36,16 +36,6 @@ $$;
 SELECT user_token_expired('andrey123');
 SELECT user_valid_token('andrey', '37745dac-53da-4103-b019-fc91c1796f8a');
 
-CREATE OR REPLACE FUNCTION find_project(owner user_data_text, name project_name_text, tags text)
-    RETURNS BOOLEAN
-    LANGUAGE plpgsql
-AS
-$$
-BEGIN
-
-END;
-$$;
-
 SELECT owner, name, tags, path_to
 FROM projects
 WHERE owner ILIKE 'andrey123'

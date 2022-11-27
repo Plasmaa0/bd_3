@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 
 DATA_DIR = '../data'
 
@@ -35,22 +36,24 @@ def add_file(user: str, path: str, data: bytes):
     pass
 
 
-def remove_file(user, project_path) -> bool:
+def remove_file(user, project_path) -> Tuple[bool, str]:
     full_filepath = f"{DATA_DIR}/{user}/{project_path}"
     try:
         os.remove(full_filepath)
-        return True
-    except:
-        return False
+        return True, ''
+    except Exception as e:
+        print('failed to remove')
+        return False, str(e)
 
 
-def remove_directory(user: str, project_path: str):
+def remove_directory(user: str, project_path: str) -> Tuple[bool, str]:
     full_filepath = f"{DATA_DIR}/{user}/{project_path}"
     try:
-        os.rmdir(full_filepath) # fixme do it recursiveliy
-        return True
-    except:
-        return False
+        os.rmdir(full_filepath)  # fixme do it recursiveliy
+        return True, ''
+    except Exception as e:
+        print('failed to remove')
+        return False, str(e)
 
 
 def create_directory(user, project_path):

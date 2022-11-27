@@ -19,8 +19,6 @@ import get from "axios";
 import {Link} from "react-router-dom";
 import {ClockCircleTwoTone, DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import {UniqueColorFromString} from "./Utils";
-import {tags_for_antd_select} from "./tags_complete";
-import {CustomTagProps} from "rc-select/lib/BaseSelect";
 
 function getQueryFn(search_type: string, getUser: () => string, getToken: () => string, searchParameters: {}) {
     return () => {
@@ -427,7 +425,7 @@ export function SearchForm({getToken, getUser, getRole}) {
             })
     }
     return (
-        <Space direction="horizontal">
+        <Space direction="horizontal" align="start">
             <Space direction="vertical">
                 <Typography.Title>Search</Typography.Title>
                 <Space direction="horizontal" size="large">

@@ -25,7 +25,7 @@ export function Register() {
     }
 
     return (
-        <div className="register-wrapper">
+        <div style={{display: "flex", alignItems: "center", flexDirection: "column"}}>
             <Typography.Title>Registration</Typography.Title>
             <Form
                 name="basic"

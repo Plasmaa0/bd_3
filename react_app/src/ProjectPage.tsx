@@ -88,13 +88,16 @@ export function ProjectPage({getToken, getUser}) {
                         {text}
                     </Link>
                     <Button danger onClick={async event => {
-                        await get("http://127.0.0.1:8000/rm/" + user + '/' + loc + '/' + text + '?' + new URLSearchParams({
+                        const s = await get("http://127.0.0.1:8000/rm/" + user + '/' + loc + '/' + text + '?' + new URLSearchParams({
                             token: getToken(),
                             user: getUser()
-                        }))
-                            .then((res) => res.status)
-                        setNeedToRefetch(true)
-                        message.success(`Removed ${text}`)
+                        })).then(value => value.data).catch(value => value.response)
+                        if (s.data) {
+                            message.error(s.data)
+                        } else {
+                            message.success(`Removed ${text}`)
+                            setNeedToRefetch(true)
+                        }
                     }}>
                         <DeleteOutlined/>
                     </Button>
@@ -109,7 +112,7 @@ export function ProjectPage({getToken, getUser}) {
                     return (
                         <Tag key={item} color={UniqueColorFromString(item)}>{item}</Tag>
                     );
-                });
+                })
             }
         }
     ];
@@ -129,11 +132,12 @@ export function ProjectPage({getToken, getUser}) {
                         const s = await get("http://127.0.0.1:8000/rmdir/" + user + '/' + loc + '/' + text + '?' + new URLSearchParams({
                             token: getToken(),
                             user: getUser()
-                        }))
-                            .then((res) => res.status)
-                        if (s === 200) {
-                            setNeedToRefetch(true)
+                        })).then(value => value.data).catch(value => value.response)
+                        if (s.data) {
+                            message.error(s.data)
+                        } else {
                             message.success(`Removed ${text}`)
+                            setNeedToRefetch(true)
                         }
                     }}>
                         <DeleteOutlined/>
@@ -208,9 +212,13 @@ export function ProjectPage({getToken, getUser}) {
                 token: getToken(), tags: new_tags,
                 user: getUser()
             })
-        await get(path).then((res) => res.data)
-        message.success("Tags updated!")
-        setNeedToRefetch(true)
+        const s = await get(path).then(value => value.data).catch(value => value.response)
+        if (s.data) {
+            message.error(s.data)
+        } else {
+            message.success("Tags updated!")
+            setNeedToRefetch(true)
+        }
         setIsModalOpen(false);
     };
 

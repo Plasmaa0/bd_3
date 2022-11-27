@@ -9,6 +9,8 @@ import psycopg2
 
 POSTGRES_CONNECTION_SETTINGS = {}
 
+TOKEN_EXPIRE_DELTA_SECONDS = 3600
+
 
 def load_settings(path: str):
     global POSTGRES_CONNECTION_SETTINGS
@@ -160,10 +162,9 @@ def register_new_user(user: str, password: str) -> bool:
 
 
 def generate_token(user: str) -> Tuple[bool, dict]:
-    expire_delta = 3600  # hour
     token = uuid.uuid4()
     print(token)
-    expire = datetime.now() + timedelta(seconds=expire_delta)
+    expire = datetime.now() + timedelta(seconds=TOKEN_EXPIRE_DELTA_SECONDS)
     err, res = simple_query(
         f"INSERT INTO public.tokens(username, token, expire) VALUES('{user}', '{token}', '{expire}');")
     if err:
@@ -274,19 +275,19 @@ def register_new_file(user: str, project_path: str, filename: str):
     print(err, res)
 
 
-def remove_file(user: str, project_path: str) -> bool:
+def remove_file(user: str, project_path: str) -> Tuple[bool, str]:
     arr = project_path.split('/')
     name = arr.pop()
     # print(f"DELETE FROM files WHERE owner='{user}' AND name={name} AND path='{'/'.join(arr)}';")
     err, res = simple_query(f"DELETE FROM files WHERE owner='{user}' AND name='{name}' AND path='{'/'.join(arr)}';")
     print(err, res)
     if err:
-        return False
+        return False, err
     else:
-        return True
+        return True, ''
 
 
-def remove_project(user: str, project_path: str):
+def remove_project(user: str, project_path: str) -> Tuple[bool, str]:
     if '/' in project_path:
         arr = project_path.split('/')
         name = arr[-1]
@@ -296,9 +297,9 @@ def remove_project(user: str, project_path: str):
     print(query)
     err, res = simple_query(query)
     if err:
-        return False
+        return False, err
     else:
-        return True
+        return True, ''
 
 
 def create_project(user, project_path, tags):

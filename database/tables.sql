@@ -27,9 +27,8 @@ CREATE TABLE IF NOT EXISTS projects
     parent_project project_name_text,
     name           project_name_text,
     tags           text,
-    path_to        text UNIQUE,
-    UNIQUE (owner, name),
-    FOREIGN KEY (owner, parent_project) REFERENCES projects (owner, name) ON DELETE CASCADE
+    path_to        text,
+    UNIQUE (owner, path_to)
 );
 -- TODO проверить всякие случаи когда у чего либо одинаковые имена в
 --  разных ситуациях и если что изменить условия в UNIQUE
@@ -55,10 +54,11 @@ CREATE TABLE IF NOT EXISTS projects
 CREATE TABLE IF NOT EXISTS files
 (
     id             SERIAL PRIMARY KEY,
-    owner          user_data_text REFERENCES users (name) ON DELETE CASCADE,
+    owner          user_data_text,
     parent_project project_name_text NOT NULL,
     name           file_name_text    NOT NULL,
-    path           text REFERENCES projects (path_to) ON DELETE CASCADE
+    path           text,
+    FOREIGN KEY (owner, path) REFERENCES projects (owner, path_to) ON DELETE CASCADE
 );
 
 -- INSERT INTO files(owner, parent_project, name, path)

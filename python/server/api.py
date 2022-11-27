@@ -88,12 +88,14 @@ async def remove_file(user_page: str, project_path: str, user: str = '', token: 
 
     if not database_interactions.is_user_exist(user_page):  # FIXME user directory must be created when user registers
         print("no such user " + user_page)
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=("no such user " + user_page))
-    if file_interactions.remove_file(user_page, project_path) and database_interactions.remove_file(user_page,
-                                                                                                    project_path):
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="removed " + project_path)
-    else:
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="error removing " + project_path)
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=("No such user " + user_page))
+    success, msg = file_interactions.remove_file(user_page, project_path)
+    if not success:
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
+    success, msg = database_interactions.remove_file(user_page,project_path)
+    if not success:
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
+    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Removed " + project_path)
 
 
 @app.get("/rmdir/{user_page}/{project_path:path}")
@@ -104,12 +106,14 @@ async def remove_directory(user_page: str, project_path: str, user: str = '', to
 
     if not database_interactions.is_user_exist(user_page):  # FIXME user directory must be created when user registers
         print("no such user " + user_page)
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=("no such user " + user_page))
-    if file_interactions.remove_directory(user_page, project_path) and database_interactions.remove_project(user_page,
-                                                                                                            project_path):
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="removed " + project_path)
-    else:
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="error removing " + project_path)
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=("No such user " + user_page))
+    success, msg = file_interactions.remove_directory(user_page, project_path)
+    if not success:
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
+    success, msg = database_interactions.remove_project(user_page,project_path)
+    if not success:
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
+    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Removed " + project_path)
 
 
 @app.get("/mkdir/{user_page}/{project_path:path}")
