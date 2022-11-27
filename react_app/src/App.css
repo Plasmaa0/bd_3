@@ -1,0 +1,14 @@
+@import "antd/dist/reset.css";
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.box {
+    height: 100%;
+}
+.box .row.content {
+    padding: 10px 50px;
+}

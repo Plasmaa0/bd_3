@@ -5,7 +5,6 @@ drop domain if exists project_name_text cascade;
 drop domain if exists file_name_text cascade;
 
 CREATE TYPE user_role AS ENUM ('default', 'admin');
-CREATE TYPE project_tag AS ENUM ('code', 'math', 'cpp', 'py');
 CREATE DOMAIN user_data_text VARCHAR(30) NOT NULL;
 CREATE DOMAIN project_name_text VARCHAR(100);
 CREATE DOMAIN file_name_text VARCHAR(255);
@@ -13,12 +12,13 @@ CREATE DOMAIN file_name_text VARCHAR(255);
 drop table if exists projects cascade;
 drop table if exists users cascade;
 drop table if exists files cascade;
+drop table if exists tokens cascade;
 
 CREATE TABLE IF NOT EXISTS users
 (
     name     user_data_text PRIMARY KEY,
     password user_data_text NOT NULL,
-    role     user_role      NOT NULL
+    role     user_role      NOT NULL DEFAULT 'default'
 );
 
 CREATE TABLE IF NOT EXISTS projects
@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS projects
     owner          user_data_text NOT NULL REFERENCES users (name) ON DELETE CASCADE,
     parent_project project_name_text,
     name           project_name_text,
-    tags           project_tag[],
+    tags           text,
+    path_to        text UNIQUE,
     UNIQUE (owner, name),
     FOREIGN KEY (owner, parent_project) REFERENCES projects (owner, name) ON DELETE CASCADE
 );
@@ -34,39 +35,47 @@ CREATE TABLE IF NOT EXISTS projects
 --  разных ситуациях и если что изменить условия в UNIQUE
 --  см UNIQUE NULLS NOT DISTINCT
 
-INSERT INTO users(name, password, role)
-VALUES ('andrey', '123456789', 'admin'::user_role),
-       ('senya', '123456789', 'default'::user_role);
-
-INSERT INTO projects(owner, name, tags)
-VALUES ('andrey', 'prog', '{"code"}');
-
-INSERT INTO projects(owner, parent_project, name, tags)
-VALUES ('andrey', 'prog', 'cpp', '{"code", "cpp"}'),
-       ('andrey', 'prog', 'python', '{"code", "py"}');
-
-INSERT INTO projects(owner, parent_project, name, tags)
-VALUES ('andrey', 'cpp', 'meshloader', '{"code", "cpp"}'),
-       ('andrey', 'cpp', 'stl', '{"code", "cpp"}'),
-       ('andrey', 'python', 'flask-app', '{"code", "py"}'),
-       ('andrey', 'python', 'tg-bot', '{"code", "py"}');
+-- INSERT INTO users(name, password, role)
+-- VALUES ('andrey123', '123456789', 'admin'::user_role);
+--
+-- INSERT INTO projects(owner, name, tags, path_to)
+-- VALUES ('andrey123', 'prog', '{"code"}', 'prog'),
+--        ('andrey123', 'kikir', '{"math", "cpp"}', 'kikir');
+--
+-- INSERT INTO projects(owner, parent_project, name, tags, path_to)
+-- VALUES ('andrey123', 'prog', 'cpp', '{"code", "cpp"}', 'prog/cpp'),
+--        ('andrey123', 'prog', 'python', '{"code", "py"}', 'prog/python');
+--
+-- INSERT INTO projects(owner, parent_project, name, tags, path_to)
+-- VALUES ('andrey123', 'cpp', 'meshloader', '{"code", "cpp"}', 'prog/cpp/meshloader'),
+--        ('andrey123', 'cpp', 'stl', '{"code", "cpp"}', 'prog/cpp/stl'),
+--        ('andrey123', 'python', 'flask-app', '{"code", "py"}', 'prog/python/flask-app'),
+--        ('andrey123', 'python', 'tg-bot', '{"code", "py"}', 'prog/python/tg-bot');
 
 CREATE TABLE IF NOT EXISTS files
 (
     id             SERIAL PRIMARY KEY,
-    owner          user_data_text,
+    owner          user_data_text REFERENCES users (name) ON DELETE CASCADE,
     parent_project project_name_text NOT NULL,
     name           file_name_text    NOT NULL,
-    UNIQUE (parent_project, name),
-    FOREIGN KEY (owner, parent_project) REFERENCES projects (owner, name) ON DELETE CASCADE
+    path           text REFERENCES projects (path_to) ON DELETE CASCADE
 );
 
-INSERT INTO files(owner, parent_project, name)
-VALUES ('andrey', 'meshloader', '/src/AneuMeshLoader.cpp'),
-       ('andrey', 'meshloader', '/src/FiniteElement.cpp'),
-       ('andrey', 'meshloader', '/src/Main.cpp'),
-       ('andrey', 'meshloader', '/src/MeshLoader.h'),
-       ('andrey', 'meshloader', '/src/AneuMeshLoader.h'),
-       ('andrey', 'meshloader', '/src/FiniteElement.h'),
-       ('andrey', 'meshloader', '/src/MeshLoader.cpp'),
-       ('andrey', 'meshloader', '/src/Node.h');
+-- INSERT INTO files(owner, parent_project, name, path)
+-- VALUES ('andrey123', 'meshloader', 'AneuMeshLoader.cpp', 'prog/cpp/meshloader'),
+--        ('andrey123', 'meshloader', 'FiniteElement.cpp', 'prog/cpp/meshloader'),
+--        ('andrey123', 'meshloader', 'Main.cpp', 'prog/cpp/meshloader'),
+--        ('andrey123', 'meshloader', 'MeshLoader.h', 'prog/cpp/meshloader'),
+--        ('andrey123', 'meshloader', 'AneuMeshLoader.h', 'prog/cpp/meshloader'),
+--        ('andrey123', 'meshloader', 'FiniteElement.h', 'prog/cpp/meshloader'),
+--        ('andrey123', 'meshloader', 'MeshLoader.cpp', 'prog/cpp/meshloader'),
+--        ('andrey123', 'meshloader', 'Node.h', 'prog/cpp/meshloader'),
+--        ('andrey123', 'cpp', 'clang-format.txt', 'prog/cpp'),
+--        ('andrey123', 'prog', 'README.md', 'prog');
+
+CREATE TABLE IF NOT EXISTS tokens
+(
+    username user_data_text REFERENCES users (name) ON DELETE CASCADE,
+    token    uuid,
+    expire   timestamp
+);

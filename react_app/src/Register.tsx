@@ -1,0 +1,94 @@
+import React, {useState} from "react";
+import {Link} from "react-router-dom";
+import {Button, Form, Input, message, Typography} from "antd";
+
+async function RegisterUser(username: string, password: string) {
+    return fetch("http://127.0.0.1:8000/register?" + new URLSearchParams({
+        user: username,
+        password: password
+    }), {
+        method: 'POST'
+    })
+        .catch(error => console.log('error', error));
+}
+
+export function Register() {
+    // @ts-ignore
+    const handleSubmit = async (values: any) => {
+        // @ts-ignore
+        const response: Response = await RegisterUser(
+            // @ts-ignore
+            values['username'],
+            values['password']
+        )
+        console.log(response.status)
+        message.info(await response.json());
+    }
+
+    return (
+        <div className="register-wrapper">
+            <Typography.Title>Registration</Typography.Title>
+            <Form
+                name="basic"
+                labelCol={{span: 8}}
+                wrapperCol={{span: 16}}
+                validateTrigger="onChange"
+                autoComplete="off"
+                onFinish={handleSubmit}
+            >
+                <Form.Item
+                    label="Username"
+                    name="username"
+                    rules={[{required: true, message: "Username is required"},
+                        {min: 8, message: ">8 characters"},
+                        {max: 20, message: "<20 characters"},
+                        {pattern: /^(?=[a-zA-Z0-9._]{8,20}$)(?!.*[_.]{2})[^_.].*[^_.]$/, message: "Invalid username"}]}
+                >
+                    <Input/>
+                </Form.Item>
+
+                <Form.Item
+                    label="Password"
+                    name="password"
+                    rules={[{required: true, message: 'Password is required'},
+                        {min: 8, message: '>8 characters'},
+                        {max: 20, message: '<20 characters'},
+                        {pattern: /^(?=[a-zA-Z0-9._]{8,20}$)(?!.*[_.]{2})[^_.].*[^_.]$/, message: 'Invalid password'}]}
+                >
+                    <Input.Password/>
+                </Form.Item>
+
+                <Form.Item
+                    label="Repeat Password"
+                    name="repeat-password"
+                    dependencies={['password']}
+                    rules={[
+                        {
+                            required: true,
+                            message: 'Please confirm your password!',
+                        },
+                        ({getFieldValue}) => ({
+                            validator(_, value) {
+                                if (!value || getFieldValue('password') === value) {
+                                    return Promise.resolve();
+                                }
+                                return Promise.reject(new Error('The two passwords that you entered do not match!'));
+                            },
+                        }),
+                    ]}
+                >
+                    <Input.Password/>
+                </Form.Item>
+
+                <Form.Item wrapperCol={{offset: 8, span: 16}}>
+                    <Button type="primary" htmlType="submit">
+                        Submit
+                    </Button>
+                </Form.Item>
+            </Form>
+            <Button type="link" htmlType="submit">
+                <Typography.Link href="/login">Go to login</Typography.Link>
+            </Button>
+        </div>
+    );
+}
