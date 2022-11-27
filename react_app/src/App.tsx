@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter, redirect, Route, Routes} from 'react-router-dom';
+import {BrowserRouter, Route, Routes} from 'react-router-dom';
 import './App.css';
 import 'antd/dist/reset.css'
 import {Login} from "./Login";
@@ -22,6 +22,10 @@ function setUser(username: string) {
     sessionStorage.setItem('user', JSON.stringify(username));
 }
 
+function setRole(username: string) {
+    sessionStorage.setItem('role', JSON.stringify(username));
+}
+
 function getToken() {
     // @ts-ignore
     const tokenString: string = sessionStorage.getItem('token')?.replaceAll('"', '');
@@ -34,11 +38,18 @@ function getUser() {
     return userString;
 }
 
+function getRole() {
+    // @ts-ignore
+    const tokenString: string = sessionStorage.getItem('role')?.replaceAll('"', '');
+    return tokenString;
+}
+
 export function App() {
     const queryClient = new QueryClient({
         defaultOptions: {
             queries: {
                 refetchOnWindowFocus: false,
+                retry: 0
             },
         },
     })
@@ -51,8 +62,10 @@ export function App() {
                     <BrowserRouter>
                         <Layout.Content className="row content">
                             <Routes>
-                                <Route path="/" element={<Login setToken={setToken} setUser={setUser}/>}/>
-                                <Route path="/login" element={<Login setToken={setToken} setUser={setUser}/>}/>
+                                <Route path="/"
+                                       element={<Login setToken={setToken} setUser={setUser} setRole={setRole}/>}/>
+                                <Route path="/login"
+                                       element={<Login setToken={setToken} setUser={setUser} setRole={setRole}/>}/>
                                 <Route path="/register" element={<Register/>}/>
                             </Routes>
                         </Layout.Content>
@@ -74,12 +87,14 @@ export function App() {
                     <Layout.Content className="row content">
                         <Routes>
                             <Route path="/" element={<Home/>}/>
-                            <Route path="/login" element={<Login setToken={setToken} setUser={setUser}/>}/>
+                            <Route path="/login"
+                                   element={<Login setToken={setToken} setUser={setUser} setRole={setRole}/>}/>
                             <Route path="/register" element={<Register/>}/>
-                            <Route path="/search" element={<SearchForm getToken={getToken} getUser={getUser}/>}/>
-                            <Route path="/:user" element={<UserPage getToken={getToken}/>}/>
-                            <Route path="/:user/:project_path/*" element={<ProjectPage getToken={getToken}/>}/>
-                            <Route path="/file/:user/*" element={<FileView getToken={getToken}/>}/>
+                            <Route path="/search"
+                                   element={<SearchForm getToken={getToken} getUser={getUser} getRole={getRole}/>}/>
+                            <Route path="/:user" element={<UserPage getToken={getToken} getUser={getUser}/>}/>
+                            <Route path="/:user/:project_path/*" element={<ProjectPage getToken={getToken} getUser={getUser}/>}/>
+                            <Route path="/file/:user/*" element={<FileView getToken={getToken} getUser={getUser}/>}/>
                             <Route path='*' element={<Page404/>}/>
                         </Routes>
                     </Layout.Content>

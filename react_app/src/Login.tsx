@@ -15,7 +15,7 @@ async function loginUser(username: string, password: string) {
 }
 
 // @ts-ignore
-export function Login({setToken, setUser}) {
+export function Login({setToken, setUser, setRole}) {
     const navigate = useNavigate()
     const handleSubmit = async (values: any) => {
         if (!canSubmit(values)) {
@@ -36,6 +36,7 @@ export function Login({setToken, setUser}) {
             message.success("successful login")
             setToken(token);
             setUser(values['username']);
+            setRole(await jsonData['role']);
             navigate('/');
         }
     }

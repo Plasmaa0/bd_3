@@ -88,7 +88,10 @@ def user_valid_token(user: str, token: str) -> bool:
         return res[1][0][0]
 
 
-def validate_user_and_token(user: str, token: str = '') -> Tuple[bool, str]:
+def check_auth(user: str, token: str = '') -> Tuple[bool, str]:
+    if len(user) == 0:
+        print("no user given")
+        return False, "no user given"
     if not is_user_exist(user):
         print("no such user")
         return False, "no such user"
@@ -101,6 +104,21 @@ def validate_user_and_token(user: str, token: str = '') -> Tuple[bool, str]:
     elif not user_valid_token(user, token):
         print("invalid token")
         return False, "invalid token"
+    return True, ""
+
+
+def check_permissions_and_auth(user_page: str, user: str, token: str):
+    success, msg = check_auth(user, token)
+    if not success:
+        return False, msg
+    if len(user_page) == 0:
+        print("no user given")
+        return False, "no user given"
+    if not is_user_exist(user_page):
+        print("no such user")
+        return False, "no such user"
+    if user_page != user and get_user_role(user) != 'admin':
+        return False, 'not allowed'
     return True, ""
 
 
@@ -175,6 +193,7 @@ def get_user_page(user: str):
         return False, {}
     else:
         result = []
+        i = 0
         for line in res[1]:
             entry = {}
             name = line[0]
@@ -182,6 +201,8 @@ def get_user_page(user: str):
             # tags = [i for i in line[1][1:-1].split(',')]
             entry['name'] = name
             entry['tags'] = tags
+            entry['key'] = i
+            i += 1
             result.append(entry)
         print(result)
         return result
@@ -219,30 +240,37 @@ def get_project_page(user: str, project_path: str):
     if err:
         # fixme
         return {}
+    i = 0
     for file in res[1]:
         result['items']['files'].append({
             'name': file[0],
-            'ext': file[1]
+            'ext': file[1],
+            'key': i
         })
+        i += 1
 
     # информация о вложенных проектах
     err, res = simple_query(
-        f"SELECT p1.name, p1.tags FROM projects p1 JOIN projects p2 ON p2.name=p1.parent_project WHERE p2.path_to='{project_path}' AND p2.owner='{user}';")
+        f"SELECT p1.name, p1.tags FROM projects p1 JOIN projects p2 ON p2.name=p1.parent_project AND p2.owner=p1.owner WHERE p2.path_to='{project_path}' AND p2.owner='{user}';")
     if err:
         # fixme
         return {}
+    i = 0
     for child in res[1]:
         result['items']['children'].append({
             'name': child[0],
-            'tags': child[1]
+            'tags': child[1],
+            'key': i
         })
+        i += 1
     pprint.pprint(result)
     return result
 
 
-def register_new_file(user: str, project_path: str, filename: str, filepath: str):
+def register_new_file(user: str, project_path: str, filename: str):
+    parent = project_path.split('/')[-1]
     err, res = simple_query(
-        f"INSERT INTO files(id, owner, parent_project, name, path) VALUES(DEFAULT, '{user}', '{project_path}', '{filename}', '{project_path}');")
+        f"INSERT INTO files(id, owner, parent_project, name, path) VALUES(DEFAULT, '{user}', '{parent}', '{filename}', '{project_path}');")
     print(err, res)
 
 
@@ -311,22 +339,100 @@ def update_tags(user, project_path, tags):
         return True
 
 
-def find_projects(owner: str, project: str, tags: str):
-    return None
+def find_projects(owner: str, project: str, tags: str, limit: int):
+    try:
+        err, res = simple_query(
+            f"SELECT owner, name, tags, path_to FROM projects WHERE owner ILIKE '{owner}' AND name ILIKE '{project}' AND tags ILIKE '{tags}' LIMIT {limit};")
+        if err:
+            print(err, res)
+            return False, {}
+        else:
+            result = []
+            i = 0
+            for matching_project in res[1]:
+                result.append({
+                    'key': i,
+                    'owner': matching_project[0],
+                    'name': matching_project[1],
+                    'tags': matching_project[2],
+                    'path_to': matching_project[3]
+                })
+                i += 1
+            pprint.pprint(result)
+            return True, result
+    except:
+        return False, {}
 
 
-def find_user(user_to_find: str):
-    return None
+def find_users(user_to_find: str, role: str, limit: int):
+    try:
+        err, res = simple_query(
+            f"SELECT name, role FROM users WHERE name ILIKE '{user_to_find}' AND role='{role}' LIMIT {limit};")
+        if err:
+            print(err, res)
+            return False, {}
+        else:
+            result = []
+            i = 0
+            for matching_user in res[1]:
+                result.append({
+                    'key': i,
+                    'name': matching_user[0],
+                    'role': matching_user[1]
+                })
+                i += 1
+            pprint.pprint(result)
+            return True, result
+    except:
+        return False, {}
 
 
-def find_file(owner: str, filename: str):
-    return None
+def find_file(owner: str, parent_project: str, filename: str, path: str, limit: int):
+    try:
+        err, res = simple_query(
+            f"SELECT owner, parent_project, name, path FROM files WHERE "
+            f"owner ILIKE '{owner}' AND "
+            f"parent_project ILIKE '{parent_project}' AND "
+            f"name ILIKE '{filename}' AND path ILIKE '{path}' LIMIT {limit};")
+        if err:
+            print(err, res)
+            return False, {}
+        else:
+            result = []
+            i = 0
+            for matching_file in res[1]:
+                result.append({
+                    'key': i,
+                    'owner': matching_file[0],
+                    'parent_project': matching_file[1],
+                    'name': matching_file[2],
+                    'path': matching_file[3]
+                })
+                i += 1
+            pprint.pprint(result)
+            return True, result
+    except:
+        return False, {}
+
+
+def get_user_role(user: str):
+    err, res = simple_query(f"SELECT role FROM users WHERE name='{user}';")
+    if err:
+        print(err, res)
+        return 'default'
+    else:
+        return res[1][0][0]
+
+
+def edit_user_role(user: str, new_role: str):
+    err, res = simple_query(f"UPDATE users SET role='{new_role}'::user_role WHERE name='{user}';")
+    if err:
+        print(err, res)
+        return False
+    else:
+        return True
 
 
 # for testing purposes
 if __name__ == "__main__":
-    # register_new_user('andrey123', '123456789')
-    remove_project('andrey123', 'first_proj')
-    # create_project('andrey123', 'first_proj', 'tag1,tag2')
-    # create_project('andrey123', 'first_proj/nested', 'nest_tag1')
-    get_user_page('andrey123')
+    print(get_user_role('andrey123'))

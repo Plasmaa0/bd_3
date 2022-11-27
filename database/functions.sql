@@ -36,25 +36,36 @@ $$;
 SELECT user_token_expired('andrey123');
 SELECT user_valid_token('andrey', '37745dac-53da-4103-b019-fc91c1796f8a');
 
-SELECT name, tags
-FROM projects
-WHERE owner = 'andrey123'
-  AND parent_project IS NULL;
+CREATE OR REPLACE FUNCTION find_project(owner user_data_text, name project_name_text, tags text)
+    RETURNS BOOLEAN
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
 
-SELECT parent_project, name, tags
-FROM projects
-WHERE path_to = '/prog/cpp/meshloader'
-  AND owner = 'andrey123';
+END;
+$$;
 
-SELECT id, name, split_part(name, '.', 2) AS extension
+SELECT owner, name, tags, path_to
+FROM projects
+WHERE owner ILIKE 'andrey123'
+  AND name ILIKE '%e%'
+  AND tags ILIKE '%'
+LIMIT 10;
+
+SELECT name, role
+FROM users
+WHERE name ILIKE '%dr%'
+  AND role = 'default'
+LIMIT 10;
+
+SELECT owner, parent_project, name, path
 FROM files
-WHERE owner = 'andrey123'
-  AND path = '/prog/cpp/meshloader';
+WHERE owner ILIKE 'asdasd'
+  AND parent_project ILIKE 'asdasd'
+  AND name ILIKE 'asdasd'
+  AND path ILIKE 'asdasd';
 
-SELECT p1.name, p1.tags
-FROM projects p1
-         JOIN projects p2 ON p2.name = p1.parent_project
-WHERE p2.path_to = '/prog/cpp'
-  AND p2.owner = 'andrey123';
+SELECT role FROM users WHERE name='andrey123';
 
-DELETE FROM projects WHERE owner = 'andrey123' AND name = 'cpp' AND path_to = 'prog/cpp';
+UPDATE users SET role = 'admin'::user_role WHERE name='pukinzandr';

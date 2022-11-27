@@ -1,5 +1,4 @@
 import React, {useState} from "react";
-import {Link} from "react-router-dom";
 import {Button, Form, Input, message, Typography} from "antd";
 
 async function RegisterUser(username: string, password: string) {

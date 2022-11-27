@@ -22,7 +22,7 @@ import type {CustomTagProps} from 'rc-select/lib/BaseSelect';
 import {tags_for_antd_select} from "./tags_complete";
 
 // @ts-ignore
-export function ProjectPage({getToken}) {
+export function ProjectPage({getToken, getUser}) {
     const {user, project_path} = useParams<string>();
     const [needToRefetch, setNeedToRefetch] = useState(false);
 
@@ -58,7 +58,10 @@ export function ProjectPage({getToken}) {
     ].concat(extraBreadcrumbItems);
 
     const {isLoading, isFetching, error, data, refetch} = useQuery(["projectPageData"], () =>
-        get("http://127.0.0.1:8000/dir/" + user + '/' + loc + '?' + new URLSearchParams({token: getToken()}))
+        get("http://127.0.0.1:8000/dir/" + user + '/' + loc + '?' + new URLSearchParams({
+            token: getToken(),
+            user: getUser()
+        }))
             .then((res) => res.data)
     );
     useEffect(() => {
@@ -72,7 +75,7 @@ export function ProjectPage({getToken}) {
         page: {user} {project_path}</Typography.Title><Typography.Text>Fetching...</Typography.Text></div>);
     if (error) return (<div><Typography.Title>Project
         {/*// @ts-ignore*/}
-        page: {user} {project_path}</Typography.Title><Typography.Text>ERROR {error.message}</Typography.Text></div>);
+        page: {user} {project_path}</Typography.Title><Typography.Text>{error.response.data}</Typography.Text></div>);
     const filesColumns = [
         {
             title: 'File name',
@@ -85,7 +88,10 @@ export function ProjectPage({getToken}) {
                         {text}
                     </Link>
                     <Button danger onClick={async event => {
-                        await get("http://127.0.0.1:8000/rm/" + user + '/' + loc + '/' + text + '?' + new URLSearchParams({token: getToken()}))
+                        await get("http://127.0.0.1:8000/rm/" + user + '/' + loc + '/' + text + '?' + new URLSearchParams({
+                            token: getToken(),
+                            user: getUser()
+                        }))
                             .then((res) => res.status)
                         setNeedToRefetch(true)
                         message.success(`Removed ${text}`)
@@ -120,7 +126,10 @@ export function ProjectPage({getToken}) {
                         {text}
                     </Link>
                     <Button danger onClick={async event => {
-                        const s = await get("http://127.0.0.1:8000/rmdir/" + user + '/' + loc + '/' + text + '?' + new URLSearchParams({token: getToken()}))
+                        const s = await get("http://127.0.0.1:8000/rmdir/" + user + '/' + loc + '/' + text + '?' + new URLSearchParams({
+                            token: getToken(),
+                            user: getUser()
+                        }))
                             .then((res) => res.status)
                         if (s === 200) {
                             setNeedToRefetch(true)
@@ -151,7 +160,7 @@ export function ProjectPage({getToken}) {
         }
     ];
     // @ts-ignore
-    const tags = data['tags'].split(',').map((item) => {
+    const tags = data['tags']?.split(',')?.map((item) => {
         return (
             <Tag key={item} color={UniqueColorFromString(item)}>{item}</Tag>
         );
@@ -160,7 +169,10 @@ export function ProjectPage({getToken}) {
     const props: UploadProps = {
         name: 'file',
         multiple: true,
-        action: `http://127.0.0.1:8000/uploadfiles/${user}/${loc}?` + new URLSearchParams({token: getToken()}),
+        action: `http://127.0.0.1:8000/uploadfiles/${user}/${loc}?` + new URLSearchParams({
+            token: getToken(),
+            user: getUser()
+        }),
         // headers: {
         //     authorization: 'authorization-text',
         // },
@@ -192,7 +204,10 @@ export function ProjectPage({getToken}) {
         // do post in api
         const path = `http://127.0.0.1:8000/edit_tags/${user}/${loc}?` +
             // @ts-ignore
-            new URLSearchParams({token: getToken(), tags: new_tags})
+            new URLSearchParams({
+                token: getToken(), tags: new_tags,
+                user: getUser()
+            })
         await get(path).then((res) => res.data)
         message.success("Tags updated!")
         setNeedToRefetch(true)
@@ -263,9 +278,12 @@ export function ProjectPage({getToken}) {
                         </Upload>
                         <Collapse>
                             <Collapse.Panel header="Add subproject" key="1">
-                                <AddProjectForm existingProjects={data} user={user} setNeedToRefetch={setNeedToRefetch}
-                                                loc={loc}
-                                                getToken={getToken}/>
+                                <AddProjectForm existingProjects={data}
+                                                user={user}
+                                                getToken={getToken}
+                                                setNeedToRefetch={setNeedToRefetch}
+                                                getUser={getUser}
+                                                loc={loc}/>
                             </Collapse.Panel>
                         </Collapse>
                     </Space>
@@ -276,7 +294,8 @@ export function ProjectPage({getToken}) {
                     <Table pagination={false} dataSource={data['items']['files']} columns={filesColumns}></Table>
                 </Space>
                 <Routes>
-                    <Route path={`${loc}/:project_path/*`} element={<ProjectPage getToken={getToken}/>}/>
+                    <Route path={`${loc}/:project_path/*`}
+                           element={<ProjectPage getToken={getToken} getUser={getUser}/>}/>
                 </Routes>
             </Space>
         </div>);

@@ -1,7 +1,26 @@
 import React, {useEffect, useState} from "react";
-import {Button, Divider, Form, Input, Select, Space, Typography} from "antd";
+import {
+    Button,
+    Divider,
+    Form,
+    Input,
+    InputNumber,
+    message,
+    Modal,
+    Select,
+    Space,
+    Table,
+    Tag,
+    Tooltip,
+    Typography
+} from "antd";
 import {useQuery} from "@tanstack/react-query";
 import get from "axios";
+import {Link} from "react-router-dom";
+import {ClockCircleTwoTone, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {UniqueColorFromString} from "./Utils";
+import {tags_for_antd_select} from "./tags_complete";
+import {CustomTagProps} from "rc-select/lib/BaseSelect";
 
 function getQueryFn(search_type: string, getUser: () => string, getToken: () => string, searchParameters: {}) {
     return () => {
@@ -12,7 +31,7 @@ function getQueryFn(search_type: string, getUser: () => string, getToken: () => 
 }
 
 // @ts-ignore
-export function SearchForm({getToken, getUser}) {
+export function SearchForm({getToken, getUser, getRole}) {
 
     const [needToRefetch, setNeedToRefetch] = useState(false);
     const [searchParameters, setSearchParameters] = useState({});
@@ -34,49 +53,77 @@ export function SearchForm({getToken, getUser}) {
         setSearchParameters({
             owner: values['owner-name'],
             project: values['project-name'],
-            tags: values['tags']
+            tags: values['tags'],
+            limit: values['limit']
         })
         setNeedToRefetch(true)
     }
+    const role = getRole();
+    const username = getUser();
     const ProjectSearchForm = () =>
-        <Form
-            key="1"
-            name="basic"
-            labelCol={{span: 8}}
-            wrapperCol={{span: 16}}
-            validateTrigger="onChange"
-            autoComplete="off"
-            onFinish={handleProjectSearch}>
-            {/*fixme only show 'owner name' if user is admin*/}
-            <Form.Item label="Owner name"
-                       name="owner-name">
-                <Input/>
-            </Form.Item>
-            <Form.Item label="Project name"
-                       name="project-name">
-                <Input/>
-            </Form.Item>
-            {/*todo make this like in tag edit in ProjectPage.tsx maybe??*/}
-            <Form.Item label="Tags"
-                       name="tags">
-                <Input/>
-            </Form.Item>
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    Search
-                </Button>
-            </Form.Item>
-        </Form>
+        <Space>
+            <Form
+                key="1"
+                name="basic"
+                labelCol={{span: 8}}
+                wrapperCol={{span: 16}}
+                validateTrigger="onChange"
+                autoComplete="off"
+                onFinish={handleProjectSearch}>
+                <Form.Item label="Owner name"
+                           name="owner-name"
+                           initialValue={role !== 'admin' ? username : ''}
+                           rules={[{required: true, message: "Required"},
+                               {
+                                   validator: (_, value) => {
+                                       if (role !== 'admin') {
+                                           if (value !== username) {
+                                               return Promise.reject("Search other users only allowed for admins");
+                                           }
+                                       }
+                                       return Promise.resolve();
+                                   }
+                               }]}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Project name"
+                           name="project-name"
+                           rules={[{required: true, message: "Required"}]}>
+                    <Input/>
+                </Form.Item>
+                {/*todo make this like in tag edit in ProjectPage.tsx maybe??*/}
+                <Form.Item label="Tags"
+                           name="tags"
+                           rules={[{required: true, message: "Required"}]}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Limit"
+                           name="limit"
+                           initialValue={10}
+                           rules={[{required: true, message: "Required"}]}>
+                    <InputNumber/>
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                        Search
+                    </Button>
+                </Form.Item>
+            </Form></Space>
 
-    // fixme only show user search if current user is admin
     const handleUserSearch = async (values: any) => {
+        console.log(values)
         setSearchParameters({
-            user: values['user-name']
+            user: values['user-name'],
+            role: values['role'],
+            limit: values['limit']
         })
         setNeedToRefetch(true)
     }
+    const [searchParamsForm] = Form.useForm();
+    searchParamsForm.setFieldValue('role', 'default')
     const UserSearchForm = () =>
-        <Form
+        <Space><Form
+            form={searchParamsForm}
             key="2"
             name="basic"
             labelCol={{span: 8}}
@@ -85,61 +132,299 @@ export function SearchForm({getToken, getUser}) {
             autoComplete="off"
             onFinish={handleUserSearch}>
             <Form.Item label="User name"
-                       name="user-name">
+                       name="user-name"
+                       rules={[{required: true, message: "Required"}]}>
                 <Input/>
+            </Form.Item>
+            {/*todo change role to <Select/>*/}
+            <Form.Item label="Role"
+                       name="role">
+                <Select
+                    showArrow
+                    defaultValue={'default'}
+                    style={{width: '100%'}}
+                    onChange={value => searchParamsForm.setFieldValue('role', value)}
+                    options={[{value: 'default'}, {value: 'admin'}]}
+                />
+            </Form.Item>
+            <Form.Item label="Limit"
+                       name="limit"
+                       initialValue={10}
+                       rules={[{required: true, message: "Required"}]}>
+                <InputNumber/>
             </Form.Item>
             <Form.Item>
                 <Button type="primary" htmlType="submit">
                     Search
                 </Button>
             </Form.Item>
-        </Form>
+        </Form></Space>
     const handleFileSearch = async (values: any) => {
         setSearchParameters({
             owner: values['owner-name'],
-            filename: values['file-name']
+            parent: values['parent'],
+            filename: values['file-name'],
+            path: values['path'],
+            limit: values['limit']
         })
         setNeedToRefetch(true)
     }
     const FileSearchForm = () =>
-        <Form
-            key="3"
-            name="basic"
-            labelCol={{span: 8}}
-            wrapperCol={{span: 16}}
-            validateTrigger="onChange"
-            autoComplete="off"
-            onFinish={handleFileSearch}>
-            {/*fixme only show 'owner name' if user is admin*/}
-            <Form.Item label="Owner name"
-                       name="owner-name">
-                <Input/>
-            </Form.Item>
-            <Form.Item label="File name"
-                       name="file-name">
-                <Input/>
-            </Form.Item>
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    Search
-                </Button>
-            </Form.Item>
-        </Form>
+        <Space>
+            <Form
+                key="3"
+                name="basic"
+                labelCol={{span: 8}}
+                wrapperCol={{span: 16}}
+                validateTrigger="onChange"
+                autoComplete="off"
+                onFinish={handleFileSearch}>
+                <Form.Item label="Owner name"
+                           name="owner-name"
+                           initialValue={role !== 'admin' ? username : ''}
+                           rules={[{required: true, message: "Required"},
+                               {
+                                   validator: (_, value) => {
+                                       if (role !== 'admin') {
+                                           if (value !== username) {
+                                               return Promise.reject("Search other users only allowed for admins");
+                                           }
+                                       }
+                                       return Promise.resolve();
+                                   }
+                               }]}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Parent project"
+                           name="parent"
+                           rules={[{required: true, message: "Required"}]}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="File name"
+                           name="file-name"
+                           rules={[{required: true, message: "Required"}]}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Path"
+                           name="path"
+                           rules={[{required: true, message: "Required"}]}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Limit"
+                           name="limit"
+                           initialValue={10}
+                           rules={[{required: true, message: "Required"}]}>
+                    <InputNumber/>
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                        Search
+                    </Button>
+                </Form.Item>
+            </Form>
+        </Space>
     const [selectedForm, setSelectedForm] = useState<string>('projects');
+
+    const [editRoleForm] = Form.useForm();
+    const [editRoleUser, setEditRoleUser] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false); // edit tags modal
+    const showModal = () => {
+        setIsModalOpen(true);
+    };
+    const handleOk = async () => {
+        const newRole = editRoleForm.getFieldValue('role');
+        const path = `http://127.0.0.1:8000/edit_role/${editRoleUser}?` +
+            // @ts-ignore
+            new URLSearchParams({
+                new_role: newRole,
+                token: getToken(),
+                user: getUser()
+            })
+        await get(path).then((res) => res.data)
+        message.success("Role updated!")
+        setNeedToRefetch(true)
+        setIsModalOpen(false);
+    };
+
+    const handleCancel = () => {
+        message.warning("Role not updated!")
+        setIsModalOpen(false);
+    };
+
     const SearchResult = () => {
         if (isPaused) return (<Typography.Text>Paused</Typography.Text>);
-        if (isLoading) return (<Typography.Text>Loading...</Typography.Text>);
-        if (isFetching) return (<Typography.Text>Fetching...</Typography.Text>);
+        if (isLoading) return (<ClockCircleTwoTone spin twoToneColor={"lime"} style={{fontSize: '50px'}}/>);
+        if (isFetching) return (<ClockCircleTwoTone spin twoToneColor={"lime"} style={{fontSize: '50px'}}/>);
         if (error) { // @ts-ignore
-            return (<Typography.Text> ERROR {error.message}</Typography.Text>);
+            return (<Typography.Text>{error.response.data}</Typography.Text>);
         }
         // @ts-ignore
-        return <Typography.Text>Result of search by {selectedForm}: <Space>{data.data}</Space></Typography.Text>
+        if (data.status !== 200)
+            return <Typography.Text>SERVER NOT OK</Typography.Text>
+        switch (search_type) {
+            case 'projects':
+                // @ts-ignore
+                return <Table dataSource={data.data} pagination={false}>
+                    <Table.Column
+                        title="Name"
+                        dataIndex="name"
+                        key="name"
+                        render={(value, record) => {
+                            // @ts-ignore
+                            return <Link to={`/${record['owner']}/${record['path_to']}`}>{value}</Link>
+                        }
+                        }/>
+                    <Table.Column
+                        title="Owner"
+                        dataIndex="owner"
+                        key="owner"
+                        render={(value) => {
+                            return <Link to={`/${value}`}>{value}</Link>
+                        }}
+                    />
+                    <Table.Column
+                        title="Tags"
+                        dataIndex="tags"
+                        key="tags"
+                        render={(value: string) => {
+                            return (
+                                <Space size="middle" direction="horizontal"
+                                       style={{display: "flex", justifyContent: "space-between"}}>
+                                    <Space size="small">
+                                        {value.split(',').map((value) => {
+                                            return (
+                                                <Tag key={value} color={UniqueColorFromString(value)}>{value}</Tag>
+                                            );
+                                        })}
+                                    </Space>
+                                </Space>)
+                        }
+                        }
+                    />
+                    <Table.Column
+                        title="Path"
+                        key="path_to"
+                        dataIndex="path_to"
+                    />
+                </Table>
+            case 'files':
+                // @ts-ignore
+                return <Table dataSource={data.data} pagination={false}>
+                    <Table.Column
+                        title="Name"
+                        dataIndex="name"
+                        key="name"
+                        render={(value, record) => {
+                            // @ts-ignore
+                            return <Link to={`/file/${record['owner']}/${record['path']}/${value}`}>{value}</Link>
+                        }
+                        }/>
+                    <Table.Column
+                        title="Owner"
+                        dataIndex="owner"
+                        key="owner"
+                        render={(value) => {
+                            return <Link to={`/${value}`}>{value}</Link>
+                        }}
+                    />
+                    <Table.Column
+                        title="Parent project"
+                        dataIndex="parent_project"
+                        key="parent_project"
+                        render={(value, record) => {
+                            // @ts-ignore
+                            return <Link to={`/${record['owner']}/${record['path']}`}>{value}</Link>
+                        }
+                        }
+                    />
+                    <Table.Column
+                        title="Path"
+                        key="path"
+                        dataIndex="path"
+                    />
+                </Table>
+            case 'users':
+                // @ts-ignore
+                return <Table dataSource={data.data} pagination={false}>
+                    <Table.Column
+                        title="Name"
+                        key="name"
+                        dataIndex="name"
+                        render={(value) => {
+                            return <Link to={`/${value}`}>{value}</Link>
+                        }}
+                    />
+                    <Table.Column
+                        title="Role"
+                        key="role"
+                        dataIndex="role"
+                        render={(value, record) => {
+                            return (
+                                <Space>
+                                    <Modal title="Edit user role" open={isModalOpen} onOk={handleOk}
+                                           onCancel={handleCancel}>
+                                        <Form
+                                            form={editRoleForm}
+                                            key="2"
+                                            name="basic"
+                                            labelCol={{span: 8}}
+                                            wrapperCol={{span: 16}}
+                                            validateTrigger="onChange"
+                                            autoComplete="off"
+                                            initialValues={{role: value}}
+                                            // onFinish={handleUserSearch}
+                                        >
+                                            <Form.Item label="Role"
+                                                       name="role">
+                                                <Select
+                                                    showArrow
+                                                    defaultValue={'default'}
+                                                    style={{width: '100%'}}
+                                                    onChange={value => editRoleForm.setFieldValue('role', value)}
+                                                    options={[{value: 'default'}, {value: 'admin'}]}
+                                                />
+                                            </Form.Item>
+                                        </Form>
+                                    </Modal>
+                                    <Typography.Text>{value}</Typography.Text>
+                                    <Tooltip title="Edit user role" placement="right">
+                                        <Button type="primary" onClick={event => {
+                                            showModal()
+                                            // @ts-ignore
+                                            setEditRoleUser(record['name'])
+                                        }}>
+                                            <EditOutlined/>
+                                        </Button>
+                                    </Tooltip>
+                                </Space>)
+                        }
+                        }
+                    />
+                </Table>
+            default:
+                return <Typography.Text>Something went wrong</Typography.Text>
+        }
     }
     const forms = {
         'projects': ProjectSearchForm,
         'users': UserSearchForm,
         'files': FileSearchForm
+    }
+    let options = [
+        {
+            value: 'projects',
+            label: 'Projects',
+        },
+        {
+            value: 'files',
+            label: 'Files',
+        }];
+    if (role === 'admin') {
+        options.push(
+            {
+                value: 'users',
+                label: 'Users',
+            })
     }
     return (
         <Space direction="horizontal">
@@ -150,33 +435,19 @@ export function SearchForm({getToken, getUser}) {
                     <Select
                         defaultValue={"projects"}
                         style={{width: 150}}
-                        options={[
-                            {
-                                value: 'projects',
-                                label: 'Projects',
-                            },
-                            {
-                                value: 'users',
-                                label: 'Users',
-                            },
-                            {
-                                value: 'files',
-                                label: 'Files',
-                            }]}
+                        options={options}
                         onSelect={(value: string) => {
                             setSelectedForm(value)
                             setSearch_type(value)
                         }}
                     />
                 </Space>
-                {/*FIXME SET THAT EVERY INPUT IS REQUIRED AND INTRODUCE 'LIMIT' PARAMETER*/}
                 {/*@ts-ignore*/}
                 {forms[selectedForm]()}
             </Space>
             <Divider type="vertical"></Divider>
             <Space direction="vertical">
-                <Typography.Title>Content</Typography.Title>
-                <Typography.Text>Search parameters json: {JSON.stringify(searchParameters)}</Typography.Text>
+                <Typography.Title>Search result</Typography.Title>
                 <SearchResult/>
             </Space>
         </Space>

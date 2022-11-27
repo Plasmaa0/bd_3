@@ -8,11 +8,11 @@ import {AddProjectForm} from "./addProjectForm";
 import {UniqueColorFromString} from "./Utils";
 
 // @ts-ignore
-export function UserPage({getToken}) {
+export function UserPage({getToken, getUser}) {
     const {user} = useParams<string>();
     const [needToRefetch, setNeedToRefetch] = useState(true);
     const {isLoading, error, data, isFetching, refetch} = useQuery(["userPageData"], () =>
-        get("http://127.0.0.1:8000/dir/" + user + '?' + new URLSearchParams({token: getToken()}))
+        get("http://127.0.0.1:8000/dir/" + user + '?' + new URLSearchParams({token: getToken(), user: getUser()}))
             .then((res) => res.data)
     );
     useEffect(() => {
@@ -37,7 +37,7 @@ export function UserPage({getToken}) {
         <div>
             <Typography.Title>User page: {user}</Typography.Title>
             {/*// @ts-ignore*/}
-            <Typography.Text>ERROR {error.message}</Typography.Text>
+            <Typography.Text>{error.response.data}</Typography.Text>
         </div>);
 
     if (user != null && data) {
@@ -55,7 +55,10 @@ export function UserPage({getToken}) {
                             {text}
                         </Link>
                         <Button danger onClick={async event => {
-                            const s = await get("http://127.0.0.1:8000/rmdir/" + user + '/' + text + '?' + new URLSearchParams({token: getToken()}))
+                            const s = await get("http://127.0.0.1:8000/rmdir/" + user + '/' + text + '?' + new URLSearchParams({
+                                token: getToken(),
+                                user: getUser()
+                            }))
                                 .then((res) => res.status)
                             if (s === 200) {
                                 setNeedToRefetch(true)
@@ -86,7 +89,7 @@ export function UserPage({getToken}) {
                     <Collapse>
                         <Collapse.Panel header="Add project" key="1">
                             <AddProjectForm existingProjects={data} user={user} setNeedToRefetch={setNeedToRefetch}
-                                            getToken={getToken}/>
+                                            getToken={getToken} getUser={getUser}/>
                         </Collapse.Panel>
                     </Collapse>
                 </Space>

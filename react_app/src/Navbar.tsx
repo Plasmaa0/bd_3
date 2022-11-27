@@ -11,7 +11,7 @@ export function Navbar({getUser}) {
             return (
                     <Menu.Item key="profile">
                         <Button type="link">
-                            <Link to={`/${getUser()}`}>Profile: {getUser()}</Link>
+                            <Link to={`/${getUser()}`} reloadDocument={true}>Profile: {getUser()}</Link>
                         </Button>
                     </Menu.Item>
             );
