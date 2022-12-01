@@ -21,6 +21,15 @@
     "jsx": "react-jsx"
   },
   "include": [
-    "src"
+    "src",
+    "src/Pages",
+    "src/Pages/Auth",
+    "src/Pages/ClassTree",
+    "src/Pages/FileView",
+    "src/Pages/Global",
+    "src/Pages/ProjectPage",
+    "src/Pages/SearchPage",
+    "src/Pages/UserPage",
+    "src/Pages/Util"
   ]
 }

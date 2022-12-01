@@ -5,19 +5,6 @@ import {Button, Menu, Space, Typography} from 'antd';
 
 // @ts-ignore
 export function Navbar({getUser}) {
-    //fixme add Button's
-    const LoggedInFeatures = function () {
-        if (getUser())
-            return (
-                    <Menu.Item key="profile">
-                        <Button type="link">
-                            <Link to={`/${getUser()}`} reloadDocument={true}>Profile: {getUser()}</Link>
-                        </Button>
-                    </Menu.Item>
-            );
-        else
-            return (<div></div>)
-    }
     return (
         // @ts-ignore
         <Menu mode="horizontal">
@@ -41,7 +28,16 @@ export function Navbar({getUser}) {
                     <Link to="search">Search</Link>
                 </Button>
             </Menu.Item>
-            <LoggedInFeatures/>
+            <Menu.Item key="profile">
+                <Button type="link">
+                    <Link to={`/${getUser()}`} reloadDocument={true}>Profile: {getUser()}</Link>
+                </Button>
+            </Menu.Item>
+            <Menu.Item key="tree">
+                <Button type="link">
+                    <Link to={`/class-tree`}>Class tree</Link>
+                </Button>
+            </Menu.Item>
         </Menu>
     );
 }

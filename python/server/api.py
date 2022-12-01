@@ -1,3 +1,4 @@
+import json
 import time
 import uvicorn
 from fastapi import FastAPI, UploadFile, Request
@@ -92,7 +93,7 @@ async def remove_file(user_page: str, project_path: str, user: str = '', token: 
     success, msg = file_interactions.remove_file(user_page, project_path)
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
-    success, msg = database_interactions.remove_file(user_page,project_path)
+    success, msg = database_interactions.remove_file(user_page, project_path)
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
     return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Removed " + project_path)
@@ -110,14 +111,15 @@ async def remove_directory(user_page: str, project_path: str, user: str = '', to
     success, msg = file_interactions.remove_directory(user_page, project_path)
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
-    success, msg = database_interactions.remove_project(user_page,project_path)
+    success, msg = database_interactions.remove_project(user_page, project_path)
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
     return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Removed " + project_path)
 
 
-@app.get("/mkdir/{user_page}/{project_path:path}")
-async def create_directory(user_page: str, project_path: str, user: str = '', token: str = '', tags: str = ''):
+@app.post("/mkdir/{user_page}/{project_path:path}")
+async def create_directory(user_page: str, project_path: str, request: Request, user: str = '', token: str = '',
+                           tags: str = ''):
     success, msg = database_interactions.check_permissions_and_auth(user_page, user, token)
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
@@ -125,9 +127,11 @@ async def create_directory(user_page: str, project_path: str, user: str = '', to
     if not database_interactions.is_user_exist(user_page):  # FIXME user directory must be created when user registers
         print("no such user " + user_page)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=("no such user " + user_page))
-    if file_interactions.create_directory(user_page, project_path) and database_interactions.create_project(user_page,
-                                                                                                            project_path,
-                                                                                                            tags):
+    # fixme implement me
+    mkdir_success = file_interactions.create_directory(user_page, project_path)
+    db_success = database_interactions.create_project(user_page, project_path, tags)
+    link_success = database_interactions.link_project(user_page, project_path, await request.json())
+    if mkdir_success and db_success and link_success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="created " + project_path)
     else:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="error creating " + project_path)
@@ -217,8 +221,8 @@ async def file_page(user_page: str, file_path: str, user: str = '', token: str =
                         content={'data': file_interactions.encode_html(file_data)})
 
 
-@app.get("/search/{search_type}/{user}")
-async def search(search_type: str, user: str, request: Request, token: str = ''):
+@app.post("/search/{search_type}/{user}")
+async def search(request: Request, search_type: str, user: str, token: str = ''):
     print(search_type, user, token)
     # todo introduce new parameter at fronted form: limit (for every type of search)
     # todo mb extract token validation to function?
@@ -228,22 +232,25 @@ async def search(search_type: str, user: str, request: Request, token: str = '')
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
     # todo get user role from db to perform future validations
     searcher_role = database_interactions.get_user_role(user)
-    limit = int(request.query_params['limit'])
+    query_params = await request.json()
+    print(query_params)
+    limit = int(query_params['limit'])
     if search_type == 'projects':
-        owner = request.query_params['owner']
-        project = request.query_params['project']
-        tags = request.query_params['tags']
-        print(owner, project, tags)
+        owner = query_params['owner']
+        project = query_params['project']
+        tags = query_params['tags']
+        class_names = json.loads(query_params['classes'])
+        print(owner, project, tags, class_names)
         if user != owner and searcher_role != 'admin':
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content='this search not allowed by not admin')
-        succ, result = database_interactions.find_projects(owner, project, tags, limit)
+        succ, result = database_interactions.find_projects(owner, project, tags, class_names, limit)
         if succ:
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=result)
         else:
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed search by projects")
     elif search_type == 'users':
-        user_to_find = request.query_params['user']
-        role = request.query_params['role']
+        user_to_find = query_params['user']
+        role = query_params['role']
         print(user_to_find)
         # fixme check if admin
         if user != user_to_find and searcher_role != 'admin':
@@ -254,10 +261,10 @@ async def search(search_type: str, user: str, request: Request, token: str = '')
         else:
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed search by users")
     elif search_type == 'files':
-        owner = request.query_params['owner']
-        parent_project = request.query_params['parent']
-        filename = request.query_params['filename']
-        path = request.query_params['path']
+        owner = query_params['owner']
+        parent_project = query_params['parent']
+        filename = query_params['filename']
+        path = query_params['path']
         print(owner, filename)
         if user != owner and searcher_role != 'admin':
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content='this search not allowed by not admin')
@@ -268,6 +275,34 @@ async def search(search_type: str, user: str, request: Request, token: str = '')
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed search by file")
     else:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=404, content="Unsupported search type")
+
+
+@app.get('/class_tree')
+async def get_class_tree(user: str = '', token: str = ''):
+    success, msg = database_interactions.check_auth(user, token)  # todo check_auth vs chech_permissions_and_auth??!
+    if not success:
+        print(msg)
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
+    # fixme do sql!
+    class_tree = database_interactions.get_class_tree()
+    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=class_tree)
+
+
+@app.post('/classification')
+async def get_projects_by_classification(request: Request, user: str = '', token: str = ''):
+    success, msg = database_interactions.check_auth(user, token)  # todo check_auth vs chech_permissions_and_auth??!
+    if not success:
+        print(msg)
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
+    role = database_interactions.get_user_role(user)
+    # search only user's projects
+    class_filter = await request.json()
+    if len(class_filter) == 0:
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Empty filter")
+    print(class_filter)
+    search_user = '%' if role == 'admin' else user
+    projects = database_interactions.find_projects_by_class(search_user, class_filter)
+    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=projects)
 
 
 if __name__ == '__main__':

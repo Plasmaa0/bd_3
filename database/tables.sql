@@ -3,22 +3,32 @@ drop type if exists project_tag cascade;
 drop domain if exists user_data_text cascade;
 drop domain if exists project_name_text cascade;
 drop domain if exists file_name_text cascade;
+drop domain if exists class_name_text cascade;
 
 CREATE TYPE user_role AS ENUM ('default', 'admin');
 CREATE DOMAIN user_data_text VARCHAR(30) NOT NULL;
 CREATE DOMAIN project_name_text VARCHAR(100);
+CREATE DOMAIN class_name_text VARCHAR(100);
 CREATE DOMAIN file_name_text VARCHAR(255);
 
 drop table if exists projects cascade;
 drop table if exists users cascade;
 drop table if exists files cascade;
 drop table if exists tokens cascade;
+drop table if exists project_classes cascade;
+drop table if exists classification cascade;
 
 CREATE TABLE IF NOT EXISTS users
 (
     name     user_data_text PRIMARY KEY,
     password user_data_text NOT NULL,
     role     user_role      NOT NULL DEFAULT 'default'
+);
+
+CREATE TABLE IF NOT EXISTS classification
+(
+    name        class_name_text PRIMARY KEY,
+    parent_name class_name_text REFERENCES classification (name) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS projects
@@ -34,22 +44,14 @@ CREATE TABLE IF NOT EXISTS projects
 --  разных ситуациях и если что изменить условия в UNIQUE
 --  см UNIQUE NULLS NOT DISTINCT
 
--- INSERT INTO users(name, password, role)
--- VALUES ('andrey123', '123456789', 'admin'::user_role);
---
--- INSERT INTO projects(owner, name, tags, path_to)
--- VALUES ('andrey123', 'prog', '{"code"}', 'prog'),
---        ('andrey123', 'kikir', '{"math", "cpp"}', 'kikir');
---
--- INSERT INTO projects(owner, parent_project, name, tags, path_to)
--- VALUES ('andrey123', 'prog', 'cpp', '{"code", "cpp"}', 'prog/cpp'),
---        ('andrey123', 'prog', 'python', '{"code", "py"}', 'prog/python');
---
--- INSERT INTO projects(owner, parent_project, name, tags, path_to)
--- VALUES ('andrey123', 'cpp', 'meshloader', '{"code", "cpp"}', 'prog/cpp/meshloader'),
---        ('andrey123', 'cpp', 'stl', '{"code", "cpp"}', 'prog/cpp/stl'),
---        ('andrey123', 'python', 'flask-app', '{"code", "py"}', 'prog/python/flask-app'),
---        ('andrey123', 'python', 'tg-bot', '{"code", "py"}', 'prog/python/tg-bot');
+CREATE TABLE IF NOT EXISTS project_classes
+(
+    owner   user_data_text,
+    path_to text,
+    class   class_name_text REFERENCES classification (name) ON DELETE CASCADE,
+    UNIQUE (owner, path_to, class),
+    FOREIGN KEY (owner, path_to) REFERENCES projects (owner, path_to) ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS files
 (
@@ -61,21 +63,22 @@ CREATE TABLE IF NOT EXISTS files
     FOREIGN KEY (owner, path) REFERENCES projects (owner, path_to) ON DELETE CASCADE
 );
 
--- INSERT INTO files(owner, parent_project, name, path)
--- VALUES ('andrey123', 'meshloader', 'AneuMeshLoader.cpp', 'prog/cpp/meshloader'),
---        ('andrey123', 'meshloader', 'FiniteElement.cpp', 'prog/cpp/meshloader'),
---        ('andrey123', 'meshloader', 'Main.cpp', 'prog/cpp/meshloader'),
---        ('andrey123', 'meshloader', 'MeshLoader.h', 'prog/cpp/meshloader'),
---        ('andrey123', 'meshloader', 'AneuMeshLoader.h', 'prog/cpp/meshloader'),
---        ('andrey123', 'meshloader', 'FiniteElement.h', 'prog/cpp/meshloader'),
---        ('andrey123', 'meshloader', 'MeshLoader.cpp', 'prog/cpp/meshloader'),
---        ('andrey123', 'meshloader', 'Node.h', 'prog/cpp/meshloader'),
---        ('andrey123', 'cpp', 'clang-format.txt', 'prog/cpp'),
---        ('andrey123', 'prog', 'README.md', 'prog');
-
 CREATE TABLE IF NOT EXISTS tokens
 (
     username user_data_text REFERENCES users (name) ON DELETE CASCADE,
     token    uuid,
     expire   timestamp
 );
+
+INSERT INTO classification(name)
+VALUES ('root');
+INSERT INTO classification(name, parent_name)
+VALUES ('class-1', 'root'),
+       ('class-2', 'root'),
+       ('class-3', 'root');
+INSERT INTO classification(name, parent_name)
+VALUES ('class-1-1', 'class-1'),
+       ('class-1-2', 'class-1'),
+       ('class-2-1', 'class-2');
+INSERT INTO classification(name, parent_name)
+VALUES ('class-2-1-1', 'class-2-1');

@@ -39,7 +39,7 @@ export function FileView({getToken, getUser}) {
 
     loc = loc.slice(loc.indexOf('/') + 1);
     console.log(loc)
-    const {isLoading, isFetching, error, data} = useQuery(["projectPageData"], () =>
+    const {isLoading, isFetching, error, data} = useQuery(["fileData"], () =>
         get("http://127.0.0.1:8000/file/" + user + '/' + loc + '?' + new URLSearchParams({
             token: getToken(),
             user: getUser()

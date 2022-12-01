@@ -3,7 +3,7 @@ import pprint
 import time
 import uuid
 from datetime import datetime, timedelta
-from typing import Tuple
+from typing import Tuple, List
 
 import psycopg2
 
@@ -151,8 +151,16 @@ def is_password_correct(user: str, password: str) -> bool:
         return res[1][0][0]
 
 
+first_user_registered = False
+
+
 def register_new_user(user: str, password: str) -> bool:
-    err, res = simple_query(f"INSERT INTO users (name, password, role) VALUES ('{user}', '{password}', DEFAULT);")
+    role = 'default'
+    global first_user_registered
+    if not first_user_registered:
+        role = 'admin'
+        first_user_registered = True
+    err, res = simple_query(f"INSERT INTO users (name, password, role) VALUES ('{user}', '{password}', '{role}');")
     print(err, res)
     if err:
         # fixme
@@ -187,8 +195,19 @@ def get_token(user: str) -> Tuple[bool, dict]:
         return True, {"token": str(token), "expire": expire}
 
 
+def get_project_classes(user: str, project_path: str) -> List[str]:
+    err, res = simple_query(f"SELECT class FROM project_classes WHERE owner='{user}' AND path_to='{project_path}';")
+    if err:
+        return ['']
+    result = []
+    for line in res[1]:
+        result += line
+    return result
+
+
 def get_user_page(user: str):
-    err, res = simple_query(f"SELECT name, tags FROM projects WHERE owner='{user}' AND parent_project IS NULL;")
+    err, res = simple_query(
+        f"SELECT name, tags, path_to FROM projects WHERE owner='{user}' AND parent_project IS NULL;")
     if err:
         # fixme
         return False, {}
@@ -203,6 +222,8 @@ def get_user_page(user: str):
             entry['name'] = name
             entry['tags'] = tags
             entry['key'] = i
+            path = line[2]
+            entry['classes'] = get_project_classes(user, path)
             i += 1
             result.append(entry)
         print(result)
@@ -229,6 +250,7 @@ def get_project_page(user: str, project_path: str):
         'parent': res[1][0][0],
         'name': res[1][0][1],
         'tags': res[1][0][2],  # fixme
+        'classes': get_project_classes(user, project_path),
         'items': {
             'files': [],
             'children': []
@@ -252,7 +274,7 @@ def get_project_page(user: str, project_path: str):
 
     # информация о вложенных проектах
     err, res = simple_query(
-        f"SELECT p1.name, p1.tags FROM projects p1 JOIN projects p2 ON p2.name=p1.parent_project AND p2.owner=p1.owner WHERE p2.path_to='{project_path}' AND p2.owner='{user}';")
+        f"SELECT p1.name, p1.tags, p1.path_to FROM projects p1 JOIN projects p2 ON p2.name=p1.parent_project AND p2.owner=p1.owner WHERE p2.path_to='{project_path}' AND p2.owner='{user}';")
     if err:
         # fixme
         return {}
@@ -261,6 +283,7 @@ def get_project_page(user: str, project_path: str):
         result['items']['children'].append({
             'name': child[0],
             'tags': child[1],
+            'classes': get_project_classes(user, child[2]),
             'key': i
         })
         i += 1
@@ -340,10 +363,14 @@ def update_tags(user, project_path, tags):
         return True
 
 
-def find_projects(owner: str, project: str, tags: str, limit: int):
+def find_projects(owner: str, project: str, tags: str, class_names: List[str], limit: int):
     try:
-        err, res = simple_query(
-            f"SELECT owner, name, tags, path_to FROM projects WHERE owner ILIKE '{owner}' AND name ILIKE '{project}' AND tags ILIKE '{tags}' LIMIT {limit};")
+        class_names_filter = ' OR '.join([f"class = '{class_name}'" for class_name in class_names])
+        query = f"SELECT DISTINCT p.owner, name, tags, p.path_to, class FROM projects p " \
+                f"JOIN project_classes pc on p.owner = pc.owner and p.path_to = pc.path_to " \
+                f"WHERE p.owner ILIKE '{owner}' AND name ILIKE '{project}' " \
+                f"AND tags ILIKE '{tags}' AND ({class_names_filter}) LIMIT {limit};"
+        err, res = simple_query(query)
         if err:
             print(err, res)
             return False, {}
@@ -356,7 +383,8 @@ def find_projects(owner: str, project: str, tags: str, limit: int):
                     'owner': matching_project[0],
                     'name': matching_project[1],
                     'tags': matching_project[2],
-                    'path_to': matching_project[3]
+                    'path_to': matching_project[3],
+                    'class': matching_project[4]
                 })
                 i += 1
             pprint.pprint(result)
@@ -434,6 +462,93 @@ def edit_user_role(user: str, new_role: str):
         return True
 
 
+cached_class_tree = {}
+
+dummy_class_tree = [
+    {
+        'title': 'Cat1',
+        'value': 'cat1',
+        'key': 'cat1',
+        'children': [
+            {
+                'title': 'cat1-1',
+                'value': 'cat1-1',
+                'key': 'cat1-1',
+                'children': []
+            },
+            {
+                'title': 'Cat1-2',
+                'value': 'cat1-2',
+                'key': 'cat1-2',
+                'children': []
+            }
+        ]
+    },
+    {
+        'title': 'cat2',
+        'value': 'cat2',
+        'key': 'cat2',
+        'children': []
+    },
+]
+
+
+def update_class_tree():
+    def parse_class(class_name: str, parent_node, depth: int):
+        err, res = simple_query(f"SELECT * FROM class_children('{class_name}')")
+        if err:
+            print(err)
+            return False
+        for name in res[1]:
+            node = {
+                'title': name[0],
+                'value': name[0],
+                'key': name[0],
+                'children': []
+            }
+            parse_class(name[0], node, depth + 1)
+            parent_node['children'].append(node)
+
+    err, res = simple_query("SELECT * FROM class_children('root')")
+    if err:
+        print(err)
+        return False
+    root = []
+    for name in res[1]:
+        node = {
+            'title': name[0],
+            'value': name[0],
+            'key': name[0],
+            'children': []
+        }
+        parse_class(name[0], node, 1)
+        root.append(node)
+    global cached_class_tree
+    cached_class_tree.clear()
+    cached_class_tree = root
+
+
+def get_class_tree():
+    update_class_tree()  # fixme
+    global cached_class_tree
+    return cached_class_tree
+
+
+def link_project(user_page, project_path, class_names):
+    print(class_names)
+    for class_name in class_names:
+        err, res = simple_query(
+            f"INSERT INTO project_classes(owner, path_to, class) VALUES ('{user_page}','{project_path}','{class_name}');")
+        if err:
+            print(err, res)
+            return False
+    return True
+
+
+def find_projects_by_class(search_user, class_filter):
+    return find_projects(search_user, '%', '%', class_filter, 100)
+
+
 # for testing purposes
 if __name__ == "__main__":
-    print(get_user_role('andrey123'))
+    update_class_tree()

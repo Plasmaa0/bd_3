@@ -1,11 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import {Link, useParams} from "react-router-dom";
-import {Table, Typography, Tag, Button, message, Space, Collapse} from "antd";
+import {Table, Typography, Tag, Space, Collapse} from "antd";
 import {useQuery} from "@tanstack/react-query";
 import get from "axios";
-import {ClockCircleTwoTone, DeleteOutlined} from "@ant-design/icons"
+import {ClockCircleTwoTone} from "@ant-design/icons"
 import {AddProjectForm} from "./addProjectForm";
-import {UniqueColorFromString} from "./Utils";
+import {UniqueColorFromString} from "../Util/Utils";
+import {DeleteButton} from "../Util/DeleteButton";
 
 // @ts-ignore
 export function UserPage({getToken, getUser}) {
@@ -54,20 +55,12 @@ export function UserPage({getToken, getUser}) {
                         }}>
                             {text}
                         </Link>
-                        <Button danger onClick={async event => {
-                            const s = await get("http://127.0.0.1:8000/rmdir/" + user + '/' + text + '?' + new URLSearchParams({
-                                token: getToken(),
-                                user: getUser()
-                            })).then(value => value.data).catch(value => value.response)
-                            if(s.data){
-                                message.error(s.data)
-                            }else {
-                                message.success(`Removed ${text}`)
-                                setNeedToRefetch(true)
-                            }
-                        }}>
-                            <DeleteOutlined/>
-                        </Button>
+                        <DeleteButton type="rmdir"
+                                      getUser={getUser}
+                                      getToken={getToken}
+                                      setNeedToRefetch={setNeedToRefetch}
+                                      user={user}
+                                      location={text}/>
                     </Space>
             },
             {
@@ -76,6 +69,18 @@ export function UserPage({getToken, getUser}) {
                 key: 'tags',
                 render: (text: string) => {
                     return text.split(',').map((item) => {
+                        return (
+                            <Tag key={item} color={UniqueColorFromString(item)}>{item}</Tag>
+                        );
+                    });
+                }
+            },
+            {
+                title: 'Classes',
+                dataIndex: 'classes',
+                key: 'classes',
+                render: (text: string[]) => {
+                    return text.map((item) => {
                         return (
                             <Tag key={item} color={UniqueColorFromString(item)}>{item}</Tag>
                         );

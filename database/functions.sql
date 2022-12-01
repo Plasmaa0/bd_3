@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS user_token_expired;
 CREATE OR REPLACE FUNCTION user_token_expired("user" user_data_text)
     RETURNS BOOLEAN
     LANGUAGE plpgsql
@@ -15,6 +16,7 @@ BEGIN
 END;
 $$
 
+DROP FUNCTION IF EXISTS user_valid_token;
 CREATE OR REPLACE FUNCTION user_valid_token("user" user_data_text, token_ uuid)
     RETURNS BOOLEAN
     LANGUAGE plpgsql
@@ -33,29 +35,40 @@ BEGIN
 END;
 $$;
 
-SELECT user_token_expired('andrey123');
-SELECT user_valid_token('andrey', '37745dac-53da-4103-b019-fc91c1796f8a');
+DROP FUNCTION IF EXISTS class_children;
+CREATE OR REPLACE FUNCTION class_children(class_name class_name_text)
+    RETURNS TABLE
+            (
+                name_ class_name_text
+            )
+    LANGUAGE sql
+AS
+$$
+SELECT name
+FROM classification
+WHERE parent_name = class_name
+ORDER BY name;
+$$;
 
-SELECT owner, name, tags, path_to
-FROM projects
-WHERE owner ILIKE 'andrey123'
-  AND name ILIKE '%e%'
-  AND tags ILIKE '%'
+SELECT class
+FROM project_classes
+WHERE owner = 'andrey123'
+  AND path_to = '123';
+
+-- WITH RECURSIVE children AS (SELECT name, parent_name
+--                             FROM classification
+--                             WHERE name = 'root'
+--                             UNION
+--                             SELECT tp.name, tp.parent_name
+--                             FROM classification tp
+--                                      JOIN children c ON tp.parent_name = c.name)
+-- SELECT name
+-- FROM children
+-- WHERE parent_name IS NOT NULL;
+
+SELECT DISTINCT p.owner, name, tags, p.path_to, class
+FROM projects p
+         JOIN project_classes pc on p.owner = pc.owner and p.path_to = pc.path_to
+WHERE class = 'class-2'
+   OR class = 'class-3'
 LIMIT 10;
-
-SELECT name, role
-FROM users
-WHERE name ILIKE '%dr%'
-  AND role = 'default'
-LIMIT 10;
-
-SELECT owner, parent_project, name, path
-FROM files
-WHERE owner ILIKE 'asdasd'
-  AND parent_project ILIKE 'asdasd'
-  AND name ILIKE 'asdasd'
-  AND path ILIKE 'asdasd';
-
-SELECT role FROM users WHERE name='andrey123';
-
-UPDATE users SET role = 'admin'::user_role WHERE name='pukinzandr';

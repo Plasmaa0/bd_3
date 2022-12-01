@@ -1,4 +1,4 @@
-@import "antd/dist/reset.css";
+@import "../../node_modules/antd/dist/reset.css";
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',

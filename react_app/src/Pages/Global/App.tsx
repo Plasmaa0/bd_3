@@ -1,18 +1,20 @@
 import React from 'react';
 import {BrowserRouter, Route, Routes} from 'react-router-dom';
-import './App.css';
+import '../../styles/App.css';
 import 'antd/dist/reset.css'
-import {Login} from "./Login";
-import {Register} from "./Register";
-import {ProjectPage} from "./ProjectPage";
+import {Login} from "../Auth/Login";
+import {Register} from "../Auth/Register";
+import {ProjectPage} from "../ProjectPage/ProjectPage";
 import {Home} from "./Home";
 import {Page404} from "./Page404";
 import {Navbar} from "./Navbar";
-import {UserPage} from "./UserPage";
+import {UserPage} from "../UserPage/UserPage";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
-import {FileView} from "./FileView";
+import {FileView} from "../FileView/FileView";
 import {Layout, Typography} from "antd";
-import {SearchForm} from "./SearchForm";
+import {SearchForm} from "../SearchPage/SearchForm";
+import {ClassTreeSearch} from "../ClassTree/ClassTreeSearch";
+import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
 
 function setToken(userToken: string) {
     sessionStorage.setItem('token', JSON.stringify(userToken));
@@ -90,10 +92,12 @@ export function App() {
                             <Route path="/login"
                                    element={<Login setToken={setToken} setUser={setUser} setRole={setRole}/>}/>
                             <Route path="/register" element={<Register/>}/>
+                            <Route path="/class-tree" element={<ClassTreeSearch getUser={getUser} getToken={getToken}/>}/>
                             <Route path="/search"
                                    element={<SearchForm getToken={getToken} getUser={getUser} getRole={getRole}/>}/>
                             <Route path="/:user" element={<UserPage getToken={getToken} getUser={getUser}/>}/>
-                            <Route path="/:user/:project_path/*" element={<ProjectPage getToken={getToken} getUser={getUser}/>}/>
+                            <Route path="/:user/:project_path/*"
+                                   element={<ProjectPage getToken={getToken} getUser={getUser}/>}/>
                             <Route path="/file/:user/*" element={<FileView getToken={getToken} getUser={getUser}/>}/>
                             <Route path='*' element={<Page404/>}/>
                         </Routes>
@@ -102,6 +106,7 @@ export function App() {
                         <Typography.Text>Top 1 file server of the world</Typography.Text>
                     </Layout.Footer>
                 </BrowserRouter>
+                <ReactQueryDevtools initialIsOpen={true}/>
             </QueryClientProvider>
         </Layout>
     );

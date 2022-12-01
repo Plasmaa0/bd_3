@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 import {Link, useNavigate, redirect} from "react-router-dom";
 import {Form, Input, Button, Typography, message} from "antd";
-import Title from "antd/es/skeleton/Title";
 
 async function loginUser(username: string, password: string) {
     return fetch("http://127.0.0.1:8000/login?" + new URLSearchParams({
@@ -37,6 +36,7 @@ export function Login({setToken, setUser, setRole}) {
             setToken(token);
             setUser(values['username']);
             setRole(await jsonData['role']);
+            navigate('/')
             window.location.reload();
         }
     }
