@@ -30,7 +30,7 @@ export function ClassTreeSearch({getUser, getToken}) {
         setNeedToRefetch(false);
     }, [needToRefetch]);
 
-    const [searchData, setSearchData] = useState({});
+    const [searchData, setSearchData] = useState([]);
     const mutation = useMutation(
         {
             mutationKey: ["filterMutation"],
@@ -44,7 +44,7 @@ export function ClassTreeSearch({getUser, getToken}) {
             },
             onSuccess: async data1 => {
                 // @ts-ignore
-                await setSearchData(data1.data)
+                setSearchData(data1.data)
                 message.success('success')
             },
             onError: async error1 => {
@@ -72,7 +72,7 @@ export function ClassTreeSearch({getUser, getToken}) {
             <Space direction="vertical">
                 <Typography.Title>Projects</Typography.Title>
                 {/*// @ts-ignore TODO FIXME !!! repair/implement me!!*/}
-                <ProjectsTable data={data}/>
+                <ProjectsTable data={searchData}/>
             </Space>
         </Space>
     )

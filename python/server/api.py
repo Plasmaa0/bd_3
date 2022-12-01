@@ -298,11 +298,14 @@ async def get_projects_by_classification(request: Request, user: str = '', token
     # search only user's projects
     class_filter = await request.json()
     if len(class_filter) == 0:
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Empty filter")
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=[  ])
     print(class_filter)
     search_user = '%' if role == 'admin' else user
-    projects = database_interactions.find_projects_by_class(search_user, class_filter)
-    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=projects)
+    success, projects = database_interactions.find_projects_by_class(search_user, class_filter)
+    if success:
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=projects)
+    else:
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed search by class")
 
 
 if __name__ == '__main__':

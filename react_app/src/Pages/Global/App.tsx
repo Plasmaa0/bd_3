@@ -15,6 +15,7 @@ import {Layout, Typography} from "antd";
 import {SearchForm} from "../SearchPage/SearchForm";
 import {ClassTreeSearch} from "../ClassTree/ClassTreeSearch";
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
+import {TestPage} from "../../other/TestPage";
 
 function setToken(userToken: string) {
     sessionStorage.setItem('token', JSON.stringify(userToken));
@@ -57,6 +58,7 @@ export function App() {
     })
     const token: string = getToken();
     const user: string = getUser();
+    return (<TestPage/>); //fixme delete this
     if (!token || !user) {
         return (
             <Layout className="box">
@@ -92,7 +94,8 @@ export function App() {
                             <Route path="/login"
                                    element={<Login setToken={setToken} setUser={setUser} setRole={setRole}/>}/>
                             <Route path="/register" element={<Register/>}/>
-                            <Route path="/class-tree" element={<ClassTreeSearch getUser={getUser} getToken={getToken}/>}/>
+                            <Route path="/class-tree"
+                                   element={<ClassTreeSearch getUser={getUser} getToken={getToken}/>}/>
                             <Route path="/search"
                                    element={<SearchForm getToken={getToken} getUser={getUser} getRole={getRole}/>}/>
                             <Route path="/:user" element={<UserPage getToken={getToken} getUser={getUser}/>}/>

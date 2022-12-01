@@ -9,31 +9,31 @@ const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 
-const {darkAlgorithm, compactAlgorithm} = theme;
+const {darkAlgorithm, compactAlgorithm, defaultAlgorithm} = theme;
 
 root.render(
     <React.StrictMode>
         <ConfigProvider theme={{
             token: {
-                colorPrimary: '#00b96b',
-                colorPrimaryBg: '#284b3b',
+                colorPrimary: '#37b08f',
+                colorPrimaryBg: '#1c463d',
                 colorSuccess: '#06f585',
                 colorWarning: '#f37e09',
-                colorError: '#ff0810',
-                colorInfo: '#57d2e8',
-                colorBgBase: '#0f224d',
-                colorTextBase: '#b4ccff',
-                colorText: '#b4ccff',
-                colorTextSecondary: '#6f92e8',
-                colorTextPlaceholder: '#6f92e8',
-                colorTextDisabled: '#4d669f',
-                colorTextHeading: '#62ffd0',
-                colorTextLabel: '#4ac0ff',
-                colorTextDescription: '#67b6ee',
-                colorTextLightSolid: '#8d94de',
+                colorError: '#ff0005',
+                colorInfo: '#3c5180',
+                colorBgBase: '#d2d6e3',
+                colorTextBase: '#33394d',
+                colorText: '#0e0842',
+                // colorTextSecondary: '#6f92e8',
+                // colorTextPlaceholder: '#6f92e8',
+                // colorTextDisabled: '#4d669f',
+                // colorTextHeading: '#62ffd0',
+                // colorTextLabel: '#4ac0ff',
+                // colorTextDescription: '#67b6ee',
+                // colorTextLightSolid: '#8d94de',
                 fontSize: 20
             },
-            algorithm: [darkAlgorithm, compactAlgorithm],
+            algorithm: [defaultAlgorithm, compactAlgorithm],
         }}>
             <App/>
         </ConfigProvider>

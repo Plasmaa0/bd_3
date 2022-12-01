@@ -3,8 +3,9 @@ import {Link} from "react-router-dom";
 import {UniqueColorFromString} from "../Util/Utils";
 import React from "react";
 
-export function ProjectsTable(props: { data: { data: readonly any[] | undefined; } }) {
-    return <Table dataSource={props.data.data} pagination={false}>
+//@ts-ignore
+export function ProjectsTable({data}) {
+    return <Table dataSource={data} pagination={false}>
         <Table.Column
             title="Name"
             dataIndex="name"
