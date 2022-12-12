@@ -1,0 +1,2 @@
+CREATE DATABASE univer_bd;
+GRANT ALL PRIVILEGES ON DATABASE univer_bd TO postgres;
