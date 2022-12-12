@@ -11,6 +11,8 @@ services:
 
   frontend:
     build: ./react_app
+    depends_on:
+      - backend
     ports:
       - "3000:80"
 
