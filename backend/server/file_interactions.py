@@ -1,7 +1,8 @@
 import os
+import shutil
 from typing import Tuple
 
-DATA_DIR = '../data'
+DATA_DIR = 'data'
 
 
 def get_file(user, file_path):
@@ -26,16 +27,6 @@ def create_user_directory(user: str):
         os.mkdir(f"{DATA_DIR}/{user}")
 
 
-# todo
-def create_project(user: str, path: str):
-    pass
-
-
-# todo
-def add_file(user: str, path: str, data: bytes):
-    pass
-
-
 def remove_file(user, project_path) -> Tuple[bool, str]:
     full_filepath = f"{DATA_DIR}/{user}/{project_path}"
     try:
@@ -49,17 +40,29 @@ def remove_file(user, project_path) -> Tuple[bool, str]:
 def remove_directory(user: str, project_path: str) -> Tuple[bool, str]:
     full_filepath = f"{DATA_DIR}/{user}/{project_path}"
     try:
-        os.rmdir(full_filepath)  # fixme do it recursiveliy
+        os.rmdir(full_filepath)
+        # fixme do it recursiveliy (uncomment following line only when database_interactions.remove_project is fixed)
+        # shutil.rmtree(full_filepath)
         return True, ''
     except Exception as e:
         print('failed to remove')
-        return False, str(e)
+        return False, 'Directory not empty'
 
 
 def create_directory(user, project_path):
     full_filepath = f"{DATA_DIR}/{user}/{project_path}"
     try:
         os.mkdir(full_filepath)
+        return True
+    except:
+        return False
+
+
+def create_directories(user, path):
+    full_filepath = f"{DATA_DIR}/{user}/{path}"
+    print(f"create dirs {full_filepath}")
+    try:
+        os.makedirs(full_filepath, exist_ok=True)
         return True
     except:
         return False

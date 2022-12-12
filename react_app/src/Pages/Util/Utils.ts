@@ -11,6 +11,7 @@ export function hashCode(str: string) {
 }
 
 export function UniqueColorFromString(str: string) {
+    return '#7575d3';
     const color = (Math.round(hashCode(str)) % (255 * 255 * 255))
     return '#' + color.toString(16)
 }

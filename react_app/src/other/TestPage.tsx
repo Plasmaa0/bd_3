@@ -413,7 +413,7 @@ export function TestPage() {
                         </Tabs.TabPane>
                         <Tabs.TabPane tab="tab 6" key="tab6">
                             <Typography.Text>Skeleton:</Typography.Text>
-                            <Skeleton/>
+                            <Skeleton loading={true} active={true}/>
                             <Space direction="vertical">
                                 <Typography.Text>Крутящаяся иконка поверх другого элемента</Typography.Text>
                                 <Spin tip="Loading" size="large">

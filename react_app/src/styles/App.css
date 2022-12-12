@@ -1,5 +1,9 @@
 @import "../../node_modules/antd/dist/reset.css";
 
+.ant-layout-sider, .ant-layout-header{
+    background: #f5f5f5 !important;
+}
+
 html,
 body {
     height: 100%;

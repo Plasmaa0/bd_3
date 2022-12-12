@@ -1,0 +1,7 @@
+{
+    "ip": "bd_3-database-1",
+    "port": "5432",
+    "db_name": "postgres",
+    "username": "postgres",
+    "password": "postgres"
+}

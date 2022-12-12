@@ -27,7 +27,7 @@ export function AddProjectForm({existingProjects, user, getToken, setNeedToRefet
             })
         }
         const s = await axios.post(path, values['class'])
-            .then((res) => res.status)
+            .then((res) => res.status).catch(reason => message.error("Error"))
         if (s === 200) {
             setNeedToRefetch(true)
             message.success(`Added new project ${values['name']}`)

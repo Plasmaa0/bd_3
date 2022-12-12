@@ -276,7 +276,7 @@ export function SearchForm({getToken, getUser, getRole}) {
         switch (search_type) {
             case 'projects':
                 // @ts-ignore
-                return <ProjectsTable data={data}/>
+                return <ProjectsTable data={data.data}/>
             case 'files':
                 // @ts-ignore
                 return <FilesTable data={data}/>

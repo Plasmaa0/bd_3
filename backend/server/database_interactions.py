@@ -3,6 +3,7 @@ import pprint
 import time
 import uuid
 from datetime import datetime, timedelta
+from os import mkdir
 from typing import Tuple, List
 
 import psycopg2
@@ -18,6 +19,7 @@ def load_settings(path: str):
         print('successful read of', path)
         with open(path, 'r') as f:
             POSTGRES_CONNECTION_SETTINGS = json.load(f)
+        print(POSTGRES_CONNECTION_SETTINGS)
     except Exception as e:
         print(path, 'read error', e)
 
@@ -27,6 +29,8 @@ def get_connection():
         load_settings('db_settings.json')
     if POSTGRES_CONNECTION_SETTINGS:
         try:
+            # conn = psycopg2.connect(
+            #     f"postgresql://{POSTGRES_CONNECTION_SETTINGS['username']}:{POSTGRES_CONNECTION_SETTINGS['password']}@{POSTGRES_CONNECTION_SETTINGS['ip']}:{POSTGRES_CONNECTION_SETTINGS['port']}/{POSTGRES_CONNECTION_SETTINGS['db_name']}")
             conn = psycopg2.connect(host=POSTGRES_CONNECTION_SETTINGS['ip'],
                                     database=POSTGRES_CONNECTION_SETTINGS['db_name'],
                                     user=POSTGRES_CONNECTION_SETTINGS['username'],
@@ -311,6 +315,8 @@ def remove_file(user: str, project_path: str) -> Tuple[bool, str]:
 
 
 def remove_project(user: str, project_path: str) -> Tuple[bool, str]:
+    # fixme it does not remove recursively because of no foreign key with cascade deletion
+    #  representing tree structure on projects table
     if '/' in project_path:
         arr = project_path.split('/')
         name = arr[-1]
@@ -513,7 +519,12 @@ def update_class_tree():
     if err:
         print(err)
         return False
-    root = []
+    root = [{
+        'title': 'Корень дерева классификаций',
+        'value': 'root',
+        'key': 'root',
+        'children': []
+    }]
     for name in res[1]:
         node = {
             'title': name[0],
@@ -522,7 +533,7 @@ def update_class_tree():
             'children': []
         }
         parse_class(name[0], node, 1)
-        root.append(node)
+        root[0]['children'].append(node)
     global cached_class_tree
     cached_class_tree.clear()
     cached_class_tree = root
@@ -551,4 +562,38 @@ def find_projects_by_class(search_user, class_filter):
 
 # for testing purposes
 if __name__ == "__main__":
-    update_class_tree()
+    find_file('andrey123', '%', '%', '%', 1000)
+
+
+def remove_class(class_name: str):
+    err, res = simple_query(f"DELETE FROM project_classes WHERE class='{class_name}';")
+    if err:
+        print(err)
+        return False, str(err)
+    err, res = simple_query(f"DELETE FROM classification WHERE name='{class_name}';")
+    if err:
+        print(err)
+        return False, str(err)
+    return True, ''
+
+
+def add_child_class(class_name: str, child_name: str):
+    err, res = simple_query(f"INSERT INTO classification(name, parent_name) VALUES ('{child_name}', '{class_name}');")
+    if err:
+        print(err)
+        if 'already exists' in str(err):
+            return False, f"Child class '{child_name}' already exists"
+        else:
+            return False, str(err)
+    return True, ''
+
+
+def init_db():
+    files = ['tables.sql', 'functions.sql']
+    try:
+        mkdir('data')
+    except:
+        pass
+    for file in files:
+        with open(file, 'r') as f:
+            simple_query('\n'.join(f.readlines()))

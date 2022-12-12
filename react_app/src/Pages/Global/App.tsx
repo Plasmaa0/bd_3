@@ -58,7 +58,7 @@ export function App() {
     })
     const token: string = getToken();
     const user: string = getUser();
-    return (<TestPage/>); //fixme delete this
+    // return (<TestPage/>); //fixme delete this
     if (!token || !user) {
         return (
             <Layout className="box">

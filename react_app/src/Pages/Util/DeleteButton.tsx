@@ -21,7 +21,7 @@ export function DeleteButton({getToken, getUser, setNeedToRefetch, user, locatio
         message.info('Nothing was deleted')
     }
     return (
-        <Popconfirm title="Are you sure?"
+        <Popconfirm title="Are you sure? It will delete everything recursively."
                     onConfirm={confirm}
                     onCancel={cancel}
                     okType="danger"
