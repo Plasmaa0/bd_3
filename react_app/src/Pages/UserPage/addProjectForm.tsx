@@ -6,6 +6,7 @@ import {UniqueColorFromString} from "../Util/Utils";
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {ClockCircleTwoTone} from "@ant-design/icons";
+import {api_url} from "../ClassTree/Config";
 
 // @ts-ignore
 export function AddProjectForm({existingProjects, user, getToken, setNeedToRefetch, getUser, loc = ''}) {
@@ -14,13 +15,13 @@ export function AddProjectForm({existingProjects, user, getToken, setNeedToRefet
     const handleSubmit = async (values: any) => {
         var path: string
         if (loc.length > 0) {
-            path = "http://virtual.fn11.bmstu.ru:3006/mkdir/" + user + '/' + loc + '/' + values['name'] + '?' + new URLSearchParams({
+            path = api_url + "/mkdir/" + user + '/' + loc + '/' + values['name'] + '?' + new URLSearchParams({
                 token: getToken(),
                 tags: Array.from(selectedTagsSet).join(','),
                 user: getUser()
             })
         } else {
-            path = "http://virtual.fn11.bmstu.ru:3006/mkdir/" + user + '/' + values['name'] + '?' + new URLSearchParams({
+            path = api_url + "/mkdir/" + user + '/' + values['name'] + '?' + new URLSearchParams({
                 token: getToken(),
                 tags: Array.from(selectedTagsSet).join(','),
                 user: getUser()
@@ -55,7 +56,7 @@ export function AddProjectForm({existingProjects, user, getToken, setNeedToRefet
         {
             queryKey: ["getClassTreeAddProjectForm"],
             queryFn: async () => {
-                return await axios.get("http://virtual.fn11.bmstu.ru:3006/class_tree", {
+                return await axios.get(api_url + "/class_tree", {
                     params: {
                         user: getUser(),
                         token: getToken()

@@ -5,6 +5,7 @@ import get from "axios";
 import {tags_for_antd_select} from "./tags_complete";
 import {CustomTagProps} from "rc-select/lib/BaseSelect";
 import {UniqueColorFromString} from "./Utils";
+import {api_url} from "../ClassTree/Config";
 
 // @ts-ignore
 export function EditTags({data, user, loc, getToken, getUser, setNeedToRefetch}) {
@@ -22,7 +23,7 @@ export function EditTags({data, user, loc, getToken, getUser, setNeedToRefetch})
         // const new_tags = inputRef?.current?.input?.value
         const new_tags = Array.from(selectedTagsSet).join(',')
         // do post in api
-        const path = `http://virtual.fn11.bmstu.ru:3006/edit_tags/${user}/${loc}?` +
+        const path = api_url + `/edit_tags/${user}/${loc}?` +
             // @ts-ignore
             new URLSearchParams({
                 token: getToken(), tags: new_tags,

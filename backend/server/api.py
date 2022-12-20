@@ -7,6 +7,7 @@ import database_interactions
 import file_interactions
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
+from fastapi.responses import FileResponse
 
 database_interactions.init_db()
 
@@ -229,10 +230,11 @@ async def file_page(user_page: str, file_path: str, user: str = '', token: str =
         print(msg)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
 
-    file_data = file_interactions.get_file(user_page, file_path)
+    # file_data = file_interactions.get_file(user_page, file_path)
     # fixme how to return file contents?
-    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200,
-                        content={'data': file_interactions.encode_html(file_data)})
+    full_filepath = f"{DATA_DIR}/{user_page}/{file_path}"
+    return FileResponse(full_filepath)
+    # return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content={'data': file_interactions.encode_html(file_data)})
 
 
 @app.post("/search/{search_type}/{user}")

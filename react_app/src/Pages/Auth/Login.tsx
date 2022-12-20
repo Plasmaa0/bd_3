@@ -1,9 +1,10 @@
 import React, {useState} from "react";
 import {Link, useNavigate, redirect} from "react-router-dom";
 import {Form, Input, Button, Typography, message} from "antd";
+import {api_url} from "../ClassTree/Config";
 
 async function loginUser(username: string, password: string) {
-    return fetch("http://virtual.fn11.bmstu.ru:3006/login?" + new URLSearchParams({
+    return fetch(api_url + "/login?" + new URLSearchParams({
         user: username,
         password: password
     }), {

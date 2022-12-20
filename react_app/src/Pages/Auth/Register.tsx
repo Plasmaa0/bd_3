@@ -1,8 +1,9 @@
 import React, {useState} from "react";
 import {Button, Form, Input, message, Typography} from "antd";
+import {api_url} from "../ClassTree/Config";
 
 async function RegisterUser(username: string, password: string) {
-    return fetch("http://virtual.fn11.bmstu.ru:3006/register?" + new URLSearchParams({
+    return fetch(api_url + "/register?" + new URLSearchParams({
         user: username,
         password: password
     }), {

@@ -3,6 +3,7 @@ import React, {useState} from "react";
 import get from "axios";
 import {Link} from "react-router-dom";
 import {EditOutlined} from "@ant-design/icons";
+import {api_url} from "../ClassTree/Config";
 
 
 // @ts-ignore
@@ -15,7 +16,7 @@ export function UsersTable({data, getToken, getUser}) {
     };
     const handleOk = async () => {
         const newRole = editRoleForm.getFieldValue('role');
-        const path = `http://virtual.fn11.bmstu.ru:3006/edit_role/${editRoleUser}?` +
+        const path = api_url + `/edit_role/${editRoleUser}?` +
             // @ts-ignore
             new URLSearchParams({
                 new_role: newRole,

@@ -8,6 +8,7 @@ import {DeleteButton} from "../Util/DeleteButton";
 import {ProjectPageHeader} from "./ProjectPageHeader";
 import {ProjectPageContent} from "./ProjectPageContent";
 import {PageBreadcrumb} from "./PageBreadcrumb";
+import {api_url} from "../ClassTree/Config";
 
 // @ts-ignore
 export function ProjectPage({getToken, getUser}) {
@@ -25,7 +26,7 @@ export function ProjectPage({getToken, getUser}) {
         loc = loc.slice(0, -1)
 
     const {isLoading, isFetching, error, data, refetch} = useQuery(["projectPageData"], () =>
-        get("http://virtual.fn11.bmstu.ru:3006/dir/" + user + '/' + loc + '?' + new URLSearchParams({
+        get(api_url + "/dir/" + user + '/' + loc + '?' + new URLSearchParams({
             token: getToken(),
             user: getUser()
         }))
@@ -140,7 +141,7 @@ export function ProjectPage({getToken, getUser}) {
     const props: UploadProps = {
         name: 'file',
         multiple: true,
-        action: `http://virtual.fn11.bmstu.ru:3006/uploadfiles/${user}/${loc}?` + new URLSearchParams({
+        action: api_url + `/uploadfiles/${user}/${loc}?` + new URLSearchParams({
             token: getToken(),
             user: getUser()
         }),

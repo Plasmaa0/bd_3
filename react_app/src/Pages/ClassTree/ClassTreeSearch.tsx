@@ -5,6 +5,7 @@ import axios from "axios";
 import {ClockCircleTwoTone, InboxOutlined} from "@ant-design/icons";
 import {ClassificationTree} from "./ClassificationTree";
 import {ProjectsTable} from "../Tables/ProjectsTable";
+import {api_url} from "./Config";
 
 // @ts-ignore
 export function ClassTreeSearch({getUser, getToken}) {
@@ -14,7 +15,7 @@ export function ClassTreeSearch({getUser, getToken}) {
         {
             queryKey: ["getClassTree"],
             queryFn: async () => {
-                return await axios.get("http://virtual.fn11.bmstu.ru:3006/class_tree", {
+                return await axios.get(api_url + "/class_tree", {
                     params: {
                         user: getUser(),
                         token: getToken()
@@ -36,7 +37,7 @@ export function ClassTreeSearch({getUser, getToken}) {
         {
             mutationKey: ["filterMutation"],
             mutationFn: async variables => {
-                return await axios.post("http://virtual.fn11.bmstu.ru:3006/classification", variables, {
+                return await axios.post(api_url + "/classification", variables, {
                     params: {
                         user: getUser(),
                         token: getToken()
@@ -63,7 +64,7 @@ export function ClassTreeSearch({getUser, getToken}) {
         name: 'file',
         multiple: true,
         directory: true,
-        action: file => `http://virtual.fn11.bmstu.ru:3006/uploadfiles/${getUser()}/${file.webkitRelativePath}?` + new URLSearchParams({
+        action: file => api_url + `/uploadfiles/${getUser()}/${file.webkitRelativePath}?` + new URLSearchParams({
             token: getToken(),
             user: getUser(),
             create_missing_dir: '1',

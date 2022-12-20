@@ -7,10 +7,11 @@ import {ClockCircleTwoTone} from "@ant-design/icons";
 import {ProjectsTable} from "../Tables/ProjectsTable";
 import {FilesTable} from "../Tables/FilesTable";
 import {UsersTable} from "../Tables/UsersTable";
+import {api_url} from "../ClassTree/Config";
 
 function getQueryFn(search_type: string, getUser: () => string, getToken: () => string, searchParameters: {}) {
     return () => {
-        return get(`http://virtual.fn11.bmstu.ru:3006/search/${search_type}/${getUser()}?` + new URLSearchParams({
+        return get(api_url + `/search/${search_type}/${getUser()}?` + new URLSearchParams({
             token: getToken()
         }), {params: searchParameters})
     };
@@ -30,7 +31,7 @@ export function SearchForm({getToken, getUser, getRole}) {
         {
             queryKey: ["searchFormMutation"],
             queryFn: async () => {
-                return await axios.post(`http://virtual.fn11.bmstu.ru:3006/search/${search_type}/${getUser()}`, searchParameters, {
+                return await axios.post(api_url + `/search/${search_type}/${getUser()}`, searchParameters, {
                     params: {
                         token: getToken(),
                     },
@@ -71,7 +72,7 @@ export function SearchForm({getToken, getUser, getRole}) {
         {
             queryKey: ["getClassTree"],
             queryFn: async () => {
-                return await axios.get("http://virtual.fn11.bmstu.ru:3006/class_tree", {
+                return await axios.get(api_url + "/class_tree", {
                     params: {
                         user: getUser(),
                         token: getToken()

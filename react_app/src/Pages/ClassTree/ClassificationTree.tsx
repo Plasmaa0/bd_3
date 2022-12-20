@@ -3,6 +3,7 @@ import {Button, Form, Input, message, Modal, Popconfirm, Space, Tree, TreeDataNo
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {ClockCircleTwoTone, EditTwoTone} from "@ant-design/icons";
+import {api_url} from "./Config";
 
 //@ts-ignore
 export function ClassificationTree({getUser, getToken, onClassCheck}) {
@@ -18,7 +19,7 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
         {
             queryKey: ["getClassTreeClassificationTree"],
             queryFn: async () => {
-                return await axios.get("http://virtual.fn11.bmstu.ru:3006/class_tree", {
+                return await axios.get(api_url + "/class_tree", {
                     params: {
                         user: getUser(),
                         token: getToken()
@@ -58,7 +59,7 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
 
     const handleDeleteClass = async () => {
         setIsModalOpen(false);
-        const s = await axios.get("http://virtual.fn11.bmstu.ru:3006/rmclass", {
+        const s = await axios.get(api_url + "/rmclass", {
             params: {
                 class_name: editKey,
                 user: getUser(),
@@ -80,7 +81,7 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
     };
     const addChild = async (values: any) => {
         setIsModalOpen(false);
-        const s = await axios.get("http://virtual.fn11.bmstu.ru:3006/add_child_class", {
+        const s = await axios.get(api_url + "/add_child_class", {
             params: {
                 class_name: editKey,
                 child_name: values['child'],

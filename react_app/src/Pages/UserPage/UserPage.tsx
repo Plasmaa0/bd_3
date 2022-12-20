@@ -7,13 +7,14 @@ import {ClockCircleTwoTone} from "@ant-design/icons"
 import {AddProjectForm} from "./addProjectForm";
 import {UniqueColorFromString} from "../Util/Utils";
 import {DeleteButton} from "../Util/DeleteButton";
+import {api_url} from "../ClassTree/Config";
 
 // @ts-ignore
 export function UserPage({getToken, getUser}) {
     const {user} = useParams<string>();
     const [needToRefetch, setNeedToRefetch] = useState(true);
     const {isLoading, error, data, isFetching, refetch} = useQuery(["userPageData"], () =>
-        get("http://virtual.fn11.bmstu.ru:3006/dir/" + user + '?' + new URLSearchParams({token: getToken(), user: getUser()}))
+        get(api_url + "/dir/" + user + '?' + new URLSearchParams({token: getToken(), user: getUser()}))
             .then((res) => res.data)
     );
     useEffect(() => {
