@@ -96,7 +96,7 @@ export function FileView({getToken, getUser}) {
             }
         }
         return (
-            <Typography.Text>{data}</Typography.Text>
+            <Typography.Text>{data.replace(/(?:\r\n|\r|\n)/g, '<br>')}</Typography.Text>
         )
     }
     return (

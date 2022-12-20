@@ -147,17 +147,29 @@ export function ProjectPage({getToken, getUser}) {
         }),
         method: "POST",
         onChange(info) {
+            let deferred_refetch = true;
+            for(let i = 0; i< info.fileList.length; i++){
+                const f = info.fileList[i];
+                if (f.status === 'uploading'){
+                    deferred_refetch = false;
+                }
+            }
             if (info.file.status !== 'uploading') {
-                console.log(info.file, info.fileList);
+                // console.log(info.file, info.fileList);
             }
             if (info.file.status === 'done') {
-                message.success(`${info.file.name} file uploaded successfully`);
-                setNeedToRefetch(true)
+                // message.success(`${info.file.name} file uploaded successfully`);
             } else if (info.file.status === 'error') {
                 message.error(`${info.file.name} file upload failed.`);
-                setNeedToRefetch(true)
             }
-        }
+            if(deferred_refetch){
+                message.success('Файлы загружены.\nСтраница обновится через 5 секунд.', 
+                                5, 
+                                ()=>{setNeedToRefetch(true)}
+                                )
+            }
+        },
+        
     };
 
 

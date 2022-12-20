@@ -8,6 +8,7 @@ import file_interactions
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from fastapi.responses import FileResponse
+from shutil import make_archive
 
 database_interactions.init_db()
 
@@ -364,6 +365,15 @@ async def test_path():
     return "good!"
 
 
+@app.get('/download/{user_page}/{project_path:path}')
+async def download_project(user_page: str, project_path: str, user: str = '', token: str = ''):
+    path = f'{DATA_DIR}/{user_page}/{project_path}'
+    try:
+        make_archive(path, 'zip', path)
+        return FileResponse(f'{path}.zip')
+    except Exception as e:
+        print(e)
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed to create zip archive")
 # настройкst_pathи
 # папка DATA чтобы можно было обозначить
 # добавить флаг обозначающий может ли пользователь менять дефолтное расположение проекта

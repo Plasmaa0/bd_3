@@ -29,19 +29,19 @@ function setRole(username: string) {
     sessionStorage.setItem('role', JSON.stringify(username));
 }
 
-function getToken() {
+export function getToken() {
     // @ts-ignore
     const tokenString: string = sessionStorage.getItem('token')?.replaceAll('"', '');
     return tokenString;
 }
 
-function getUser() {
+export function getUser() {
     // @ts-ignore
     const userString: string = sessionStorage.getItem('user')?.replaceAll('"', '');
     return userString;
 }
 
-function getRole() {
+export function getRole() {
     // @ts-ignore
     const tokenString: string = sessionStorage.getItem('role')?.replaceAll('"', '');
     return tokenString;

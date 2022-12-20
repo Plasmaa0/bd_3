@@ -40,9 +40,9 @@ def remove_file(user, project_path) -> Tuple[bool, str]:
 def remove_directory(user: str, project_path: str) -> Tuple[bool, str]:
     full_filepath = f"{DATA_DIR}/{user}/{project_path}"
     try:
-        os.rmdir(full_filepath)
+        # os.rmdir(full_filepath)
         # fixme do it recursiveliy (uncomment following line only when database_interactions.remove_project is fixed)
-        # shutil.rmtree(full_filepath)
+        shutil.rmtree(full_filepath)
         return True, ''
     except Exception as e:
         print('failed to remove')

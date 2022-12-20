@@ -17,7 +17,7 @@ export function ProjectPageHeader(props: { loc: string, tags: any, user: any, us
                           getToken={props.token}
                           setNeedToRefetch={props.needToRefetch}
                           data={props.data}/>
-                {/*<DownloadProject/>*/}
+                <DownloadProject/>
             </Space>
 
             <Space>
