@@ -13,7 +13,7 @@ export function UserPage({getToken, getUser}) {
     const {user} = useParams<string>();
     const [needToRefetch, setNeedToRefetch] = useState(true);
     const {isLoading, error, data, isFetching, refetch} = useQuery(["userPageData"], () =>
-        get("http://127.0.0.1:8000/dir/" + user + '?' + new URLSearchParams({token: getToken(), user: getUser()}))
+        get("http://virtual.fn11.bmstu.ru:3006/dir/" + user + '?' + new URLSearchParams({token: getToken(), user: getUser()}))
             .then((res) => res.data)
     );
     useEffect(() => {

@@ -10,7 +10,7 @@ import {UsersTable} from "../Tables/UsersTable";
 
 function getQueryFn(search_type: string, getUser: () => string, getToken: () => string, searchParameters: {}) {
     return () => {
-        return get(`http://127.0.0.1:8000/search/${search_type}/${getUser()}?` + new URLSearchParams({
+        return get(`http://virtual.fn11.bmstu.ru:3006/search/${search_type}/${getUser()}?` + new URLSearchParams({
             token: getToken()
         }), {params: searchParameters})
     };
@@ -30,7 +30,7 @@ export function SearchForm({getToken, getUser, getRole}) {
         {
             queryKey: ["searchFormMutation"],
             queryFn: async () => {
-                return await axios.post(`http://127.0.0.1:8000/search/${search_type}/${getUser()}`, searchParameters, {
+                return await axios.post(`http://virtual.fn11.bmstu.ru:3006/search/${search_type}/${getUser()}`, searchParameters, {
                     params: {
                         token: getToken(),
                     },
@@ -71,7 +71,7 @@ export function SearchForm({getToken, getUser, getRole}) {
         {
             queryKey: ["getClassTree"],
             queryFn: async () => {
-                return await axios.get("http://127.0.0.1:8000/class_tree", {
+                return await axios.get("http://virtual.fn11.bmstu.ru:3006/class_tree", {
                     params: {
                         user: getUser(),
                         token: getToken()

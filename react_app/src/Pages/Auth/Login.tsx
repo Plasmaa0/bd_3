@@ -3,7 +3,7 @@ import {Link, useNavigate, redirect} from "react-router-dom";
 import {Form, Input, Button, Typography, message} from "antd";
 
 async function loginUser(username: string, password: string) {
-    return fetch("http://127.0.0.1:8000/login?" + new URLSearchParams({
+    return fetch("http://virtual.fn11.bmstu.ru:3006/login?" + new URLSearchParams({
         user: username,
         password: password
     }), {

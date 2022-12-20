@@ -18,7 +18,7 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
         {
             queryKey: ["getClassTreeClassificationTree"],
             queryFn: async () => {
-                return await axios.get("http://127.0.0.1:8000/class_tree", {
+                return await axios.get("http://virtual.fn11.bmstu.ru:3006/class_tree", {
                     params: {
                         user: getUser(),
                         token: getToken()
@@ -58,7 +58,7 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
 
     const handleDeleteClass = async () => {
         setIsModalOpen(false);
-        const s = await axios.get("http://127.0.0.1:8000/rmclass", {
+        const s = await axios.get("http://virtual.fn11.bmstu.ru:3006/rmclass", {
             params: {
                 class_name: editKey,
                 user: getUser(),
@@ -80,7 +80,7 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
     };
     const addChild = async (values: any) => {
         setIsModalOpen(false);
-        const s = await axios.get("http://127.0.0.1:8000/add_child_class", {
+        const s = await axios.get("http://virtual.fn11.bmstu.ru:3006/add_child_class", {
             params: {
                 class_name: editKey,
                 child_name: values['child'],

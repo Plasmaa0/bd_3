@@ -25,7 +25,7 @@ export function ProjectPage({getToken, getUser}) {
         loc = loc.slice(0, -1)
 
     const {isLoading, isFetching, error, data, refetch} = useQuery(["projectPageData"], () =>
-        get("http://127.0.0.1:8000/dir/" + user + '/' + loc + '?' + new URLSearchParams({
+        get("http://virtual.fn11.bmstu.ru:3006/dir/" + user + '/' + loc + '?' + new URLSearchParams({
             token: getToken(),
             user: getUser()
         }))
@@ -140,7 +140,7 @@ export function ProjectPage({getToken, getUser}) {
     const props: UploadProps = {
         name: 'file',
         multiple: true,
-        action: `http://127.0.0.1:8000/uploadfiles/${user}/${loc}?` + new URLSearchParams({
+        action: `http://virtual.fn11.bmstu.ru:3006/uploadfiles/${user}/${loc}?` + new URLSearchParams({
             token: getToken(),
             user: getUser()
         }),

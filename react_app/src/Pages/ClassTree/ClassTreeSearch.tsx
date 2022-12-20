@@ -14,7 +14,7 @@ export function ClassTreeSearch({getUser, getToken}) {
         {
             queryKey: ["getClassTree"],
             queryFn: async () => {
-                return await axios.get("http://127.0.0.1:8000/class_tree", {
+                return await axios.get("http://virtual.fn11.bmstu.ru:3006/class_tree", {
                     params: {
                         user: getUser(),
                         token: getToken()
@@ -36,7 +36,7 @@ export function ClassTreeSearch({getUser, getToken}) {
         {
             mutationKey: ["filterMutation"],
             mutationFn: async variables => {
-                return await axios.post("http://127.0.0.1:8000/classification", variables, {
+                return await axios.post("http://virtual.fn11.bmstu.ru:3006/classification", variables, {
                     params: {
                         user: getUser(),
                         token: getToken()
@@ -63,7 +63,7 @@ export function ClassTreeSearch({getUser, getToken}) {
         name: 'file',
         multiple: true,
         directory: true,
-        action: file => `http://127.0.0.1:8000/uploadfiles/${getUser()}/${file.webkitRelativePath}?` + new URLSearchParams({
+        action: file => `http://virtual.fn11.bmstu.ru:3006/uploadfiles/${getUser()}/${file.webkitRelativePath}?` + new URLSearchParams({
             token: getToken(),
             user: getUser(),
             create_missing_dir: '1',

@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import {Button, Form, Input, message, Typography} from "antd";
 
 async function RegisterUser(username: string, password: string) {
-    return fetch("http://127.0.0.1:8000/register?" + new URLSearchParams({
+    return fetch("http://virtual.fn11.bmstu.ru:3006/register?" + new URLSearchParams({
         user: username,
         password: password
     }), {

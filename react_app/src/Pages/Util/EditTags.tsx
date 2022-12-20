@@ -22,7 +22,7 @@ export function EditTags({data, user, loc, getToken, getUser, setNeedToRefetch})
         // const new_tags = inputRef?.current?.input?.value
         const new_tags = Array.from(selectedTagsSet).join(',')
         // do post in api
-        const path = `http://127.0.0.1:8000/edit_tags/${user}/${loc}?` +
+        const path = `http://virtual.fn11.bmstu.ru:3006/edit_tags/${user}/${loc}?` +
             // @ts-ignore
             new URLSearchParams({
                 token: getToken(), tags: new_tags,

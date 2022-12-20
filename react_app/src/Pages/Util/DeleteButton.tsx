@@ -6,7 +6,7 @@ import {DeleteOutlined} from "@ant-design/icons";
 // @ts-ignore
 export function DeleteButton({getToken, getUser, setNeedToRefetch, user, location, type}) {
     const confirm = async () => {
-        const s = await get(`http://127.0.0.1:8000/${type}/` + user + '/' + location + '?' + new URLSearchParams({
+        const s = await get(`http://virtual.fn11.bmstu.ru:3006/${type}/` + user + '/' + location + '?' + new URLSearchParams({
             token: getToken(),
             user: getUser()
         })).then(value => value.data).catch(value => value.response)

@@ -14,13 +14,13 @@ export function AddProjectForm({existingProjects, user, getToken, setNeedToRefet
     const handleSubmit = async (values: any) => {
         var path: string
         if (loc.length > 0) {
-            path = "http://127.0.0.1:8000/mkdir/" + user + '/' + loc + '/' + values['name'] + '?' + new URLSearchParams({
+            path = "http://virtual.fn11.bmstu.ru:3006/mkdir/" + user + '/' + loc + '/' + values['name'] + '?' + new URLSearchParams({
                 token: getToken(),
                 tags: Array.from(selectedTagsSet).join(','),
                 user: getUser()
             })
         } else {
-            path = "http://127.0.0.1:8000/mkdir/" + user + '/' + values['name'] + '?' + new URLSearchParams({
+            path = "http://virtual.fn11.bmstu.ru:3006/mkdir/" + user + '/' + values['name'] + '?' + new URLSearchParams({
                 token: getToken(),
                 tags: Array.from(selectedTagsSet).join(','),
                 user: getUser()
@@ -55,7 +55,7 @@ export function AddProjectForm({existingProjects, user, getToken, setNeedToRefet
         {
             queryKey: ["getClassTreeAddProjectForm"],
             queryFn: async () => {
-                return await axios.get("http://127.0.0.1:8000/class_tree", {
+                return await axios.get("http://virtual.fn11.bmstu.ru:3006/class_tree", {
                     params: {
                         user: getUser(),
                         token: getToken()

@@ -362,10 +362,18 @@ async def test_path():
     return "good!"
 
 
-# настройки
+# настройкst_pathи
 # папка DATA чтобы можно было обозначить
 # добавить флаг обозначающий может ли пользователь менять дефолтное расположение проекта
 # чтобы админ мог перемещать проекты
 
 if __name__ == '__main__':
-    uvicorn.run(app, port=8000, host='127.0.0.1')
+    
+    try:
+        err, res = database_interactions.simple_query("SELECT 1+2;")
+    except:
+        print( 'bad((')
+    if err:
+        print('bad')
+    print("good!")
+    # uvicorn.run(app, port=8000, host='127.0.0.1')

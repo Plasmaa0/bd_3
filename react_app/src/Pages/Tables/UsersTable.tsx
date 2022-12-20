@@ -15,7 +15,7 @@ export function UsersTable({data, getToken, getUser}) {
     };
     const handleOk = async () => {
         const newRole = editRoleForm.getFieldValue('role');
-        const path = `http://127.0.0.1:8000/edit_role/${editRoleUser}?` +
+        const path = `http://virtual.fn11.bmstu.ru:3006/edit_role/${editRoleUser}?` +
             // @ts-ignore
             new URLSearchParams({
                 new_role: newRole,
