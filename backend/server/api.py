@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 from fastapi.responses import FileResponse
 from shutil import make_archive
 
-database_interactions.init_db()
+# database_interactions.init_db()
 
 app = FastAPI()
 

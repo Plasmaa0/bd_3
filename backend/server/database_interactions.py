@@ -8,6 +8,8 @@ from typing import Tuple, List
 
 import psycopg2
 
+START_LOCAL = True
+
 POSTGRES_CONNECTION_SETTINGS = {}
 
 TOKEN_EXPIRE_DELTA_SECONDS = 3600
@@ -26,7 +28,10 @@ def load_settings(path: str):
 
 def get_connection():
     if not POSTGRES_CONNECTION_SETTINGS:
-        load_settings('db_settings.json')
+        if START_LOCAL:
+            load_settings('db_settings_local.json')
+        else:
+            load_settings('db_settings.json')
     if POSTGRES_CONNECTION_SETTINGS:
         try:
             # conn = psycopg2.connect(
@@ -589,7 +594,10 @@ def add_child_class(class_name: str, child_name: str):
 
 
 def init_db():
-    files = ['tables.sql', 'functions.sql']
+    if START_LOCAL:
+        files = ['../database/tables.sql', '../database/functions.sql']
+    else:
+        files = ['tables.sql', 'functions.sql']
     try:
         mkdir('data')
     except:

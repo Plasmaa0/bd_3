@@ -57,7 +57,7 @@ export function SearchForm({getToken, getUser, getRole}) {
 
 
     const handleProjectSearch = async (values: any) => {
-        await setSearchParameters({
+        setSearchParameters({
             owner: values['owner-name'],
             project: values['project-name'],
             tags: values['tags'],
