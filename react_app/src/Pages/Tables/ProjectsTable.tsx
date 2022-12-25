@@ -1,4 +1,4 @@
-import {Space, Table, Tag, Typography} from "antd";
+import {Space, Table, Tag} from "antd";
 import {Link} from "react-router-dom";
 import {UniqueColorFromString} from "../Util/Utils";
 import React from "react";

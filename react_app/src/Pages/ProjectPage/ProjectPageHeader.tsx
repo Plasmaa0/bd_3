@@ -6,15 +6,13 @@ import React from "react";
 import {UniqueColorFromString} from "../Util/Utils";
 import {DownloadProject} from "./DownloadProject";
 
-export function ProjectPageHeader(props: { loc: string, tags: any, user: any, user1: string | undefined, token: any, needToRefetch: (value: (((prevState: boolean) => boolean) | boolean)) => void, data: any, props: UploadProps }) {
+export function ProjectPageHeader(props: { loc: string, tags: any, user1: string | undefined, needToRefetch: (value: (((prevState: boolean) => boolean) | boolean)) => void, data: any, props: UploadProps }) {
     return <Space size="middle" direction="horizontal" style={{display: "flex", justifyContent: "space-between"}}>
         <Space direction="vertical">
             <Space direction="horizontal">
                 <Typography.Title level={2}>{props.data['name']} - {props.tags}</Typography.Title>
-                <EditTags getUser={props.user}
-                          loc={props.loc}
+                <EditTags loc={props.loc}
                           user={props.user1}
-                          getToken={props.token}
                           setNeedToRefetch={props.needToRefetch}
                           data={props.data}/>
                 <DownloadProject/>
@@ -37,9 +35,7 @@ export function ProjectPageHeader(props: { loc: string, tags: any, user: any, us
                 <Collapse.Panel header="Add subproject" key="1">
                     <AddProjectForm existingProjects={props.data}
                                     user={props.user1}
-                                    getToken={props.token}
                                     setNeedToRefetch={props.needToRefetch}
-                                    getUser={props.user}
                                     loc={props.loc}/>
                 </Collapse.Panel>
             </Collapse>

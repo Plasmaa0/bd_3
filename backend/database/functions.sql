@@ -6,8 +6,9 @@ AS
 $$
 BEGIN
     IF EXISTS(SELECT expire
-              FROM tokens
-              WHERE expire > CURRENT_TIMESTAMP + INTERVAL '3 HOURS')
+              FROM tokens t
+              WHERE username = "user"
+                AND (expire > CURRENT_TIMESTAMP + INTERVAL '3 HOURS'))
     THEN
         RETURN TRUE;
     ELSE

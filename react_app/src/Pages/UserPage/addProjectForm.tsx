@@ -1,5 +1,5 @@
 import React from "react";
-import {Form, Input, Button, message, Select, Tag, TreeSelect, Typography} from "antd";
+import {Button, Form, Input, message, Select, Tag, TreeSelect, Typography} from "antd";
 import {tags_for_antd_select} from "../Util/tags_complete";
 import {CustomTagProps} from "rc-select/lib/BaseSelect";
 import {UniqueColorFromString} from "../Util/Utils";
@@ -7,24 +7,25 @@ import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {ClockCircleTwoTone} from "@ant-design/icons";
 import {api_url} from "../ClassTree/Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
-export function AddProjectForm({existingProjects, user, getToken, setNeedToRefetch, getUser, loc = ''}) {
+export function AddProjectForm({existingProjects, user, setNeedToRefetch, loc = ''}) {
     // TODO validate that name not in existingProjects
     var selectedTagsSet = new Set();
     const handleSubmit = async (values: any) => {
         var path: string
         if (loc.length > 0) {
             path = api_url + "/mkdir/" + user + '/' + loc + '/' + values['name'] + '?' + new URLSearchParams({
-                token: getToken(),
+                token: GetToken(),
                 tags: Array.from(selectedTagsSet).join(','),
-                user: getUser()
+                user: GetUser()
             })
         } else {
             path = api_url + "/mkdir/" + user + '/' + values['name'] + '?' + new URLSearchParams({
-                token: getToken(),
+                token: GetToken(),
                 tags: Array.from(selectedTagsSet).join(','),
-                user: getUser()
+                user: GetUser()
             })
         }
         const s = await axios.post(path, values['class'])
@@ -58,8 +59,8 @@ export function AddProjectForm({existingProjects, user, getToken, setNeedToRefet
             queryFn: async () => {
                 return await axios.get(api_url + "/class_tree", {
                     params: {
-                        user: getUser(),
-                        token: getToken()
+                        user: GetUser(),
+                        token: GetToken()
                     }
                 })
             }

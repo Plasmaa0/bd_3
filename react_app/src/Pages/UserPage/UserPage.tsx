@@ -1,6 +1,6 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, useParams} from "react-router-dom";
-import {Table, Typography, Tag, Space, Collapse} from "antd";
+import {Collapse, Space, Table, Tag, Typography} from "antd";
 import {useQuery} from "@tanstack/react-query";
 import get from "axios";
 import {ClockCircleTwoTone} from "@ant-design/icons"
@@ -8,13 +8,14 @@ import {AddProjectForm} from "./addProjectForm";
 import {UniqueColorFromString} from "../Util/Utils";
 import {DeleteButton} from "../Util/DeleteButton";
 import {api_url} from "../ClassTree/Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
-export function UserPage({getToken, getUser}) {
+export function UserPage() {
     const {user} = useParams<string>();
     const [needToRefetch, setNeedToRefetch] = useState(true);
     const {isLoading, error, data, isFetching, refetch} = useQuery(["userPageData"], () =>
-        get(api_url + "/dir/" + user + '?' + new URLSearchParams({token: getToken(), user: getUser()}))
+        get(api_url + "/dir/" + user + '?' + new URLSearchParams({token: GetToken(), user: GetUser()}))
             .then((res) => res.data)
     );
     useEffect(() => {
@@ -57,8 +58,6 @@ export function UserPage({getToken, getUser}) {
                             {text}
                         </Link>
                         <DeleteButton type="rmdir"
-                                      getUser={getUser}
-                                      getToken={getToken}
                                       setNeedToRefetch={setNeedToRefetch}
                                       user={user}
                                       location={text}/>
@@ -95,8 +94,7 @@ export function UserPage({getToken, getUser}) {
                     <Typography.Title>User page: {user}</Typography.Title>
                     <Collapse>
                         <Collapse.Panel header="Add project" key="1">
-                            <AddProjectForm existingProjects={data} user={user} setNeedToRefetch={setNeedToRefetch}
-                                            getToken={getToken} getUser={getUser}/>
+                            <AddProjectForm existingProjects={data} user={user} setNeedToRefetch={setNeedToRefetch}/>
                         </Collapse.Panel>
                     </Collapse>
                 </Space>

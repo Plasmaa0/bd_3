@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React from "react";
 import {Button, Form, Input, message, Typography} from "antd";
 import {api_url} from "../ClassTree/Config";
 
@@ -22,7 +22,7 @@ export function Register() {
             values['password']
         )
         console.log(response.status)
-        message.info(await response.json());
+        message.info(await response.json(), 5);
     }
 
     return (

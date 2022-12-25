@@ -4,9 +4,10 @@ import {useQuery} from "@tanstack/react-query";
 import get from "axios";
 import {Breadcrumb, Image, Typography} from "antd";
 import {api_url} from "../ClassTree/Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
-export function FileView({getToken, getUser}) {
+export function FileView() {
     const {user} = useParams<string>();
     const location = useLocation().pathname.split('/');
     location.shift();
@@ -42,8 +43,8 @@ export function FileView({getToken, getUser}) {
     console.log(loc)
     const {isLoading, isFetching, error, data} = useQuery(["fileData"], () =>
         get(api_url + "/file/" + user + '/' + loc + '?' + new URLSearchParams({
-            token: getToken(),
-            user: getUser()
+            token: GetToken(),
+            user: GetUser()
         }))
             .then((res) => res.data)
     );
@@ -82,6 +83,7 @@ export function FileView({getToken, getUser}) {
                 ERROR {error.message}
             </Typography.Text>
         </div>);
+
     function ImageOrText() {
         const image_formats = ['jpg', 'jpeg', 'jfif', 'pjpeg', 'pjp', 'png', 'svg']
         for (let i = 0; i < image_formats.length; i++) {
@@ -89,8 +91,8 @@ export function FileView({getToken, getUser}) {
             if (loc?.split('.')[1].includes(imageFormat)) {
                 return (
                     <Image src={api_url + "/file/" + user + '/' + loc + '?' + new URLSearchParams({
-                        token: getToken(),
-                        user: getUser()
+                        token: GetToken(),
+                        user: GetUser()
                     })}></Image>
                 )
             }
@@ -99,6 +101,7 @@ export function FileView({getToken, getUser}) {
             <Typography.Text>{data.replace(/(?:\r\n|\r|\n)/g, '<br>')}</Typography.Text>
         )
     }
+
     return (
         <div>
             <Breadcrumb>{breadcrumbItems}</Breadcrumb>

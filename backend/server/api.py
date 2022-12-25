@@ -1,20 +1,20 @@
 import json
 import time
-import uvicorn
-from fastapi import FastAPI, UploadFile, Request
 from os import listdir
+from shutil import make_archive
+
+from fastapi import FastAPI, UploadFile, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from starlette.responses import JSONResponse
+
 import database_interactions
 import file_interactions
-from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse
-from fastapi.responses import FileResponse
-from shutil import make_archive
+from file_interactions import DATA_DIR
 
 # database_interactions.init_db()
 
 app = FastAPI()
-
-DATA_DIR = "data"
 
 GLOBAL_HEADERS = {"Content-Type": "application/json",
                   "Access-Control-Allow-Origin": "*"}
@@ -374,17 +374,19 @@ async def download_project(user_page: str, project_path: str, user: str = '', to
     except Exception as e:
         print(e)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed to create zip archive")
+
+
 # настройкst_pathи
 # папка DATA чтобы можно было обозначить
 # добавить флаг обозначающий может ли пользователь менять дефолтное расположение проекта
 # чтобы админ мог перемещать проекты
 
 if __name__ == '__main__':
-    
+
     try:
         err, res = database_interactions.simple_query("SELECT 1+2;")
     except:
-        print( 'bad((')
+        print('bad((')
     if err:
         print('bad')
     print("good!")

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {BrowserRouter, Route, Routes} from 'react-router-dom';
 import '../../styles/App.css';
 import 'antd/dist/reset.css'
@@ -15,37 +15,7 @@ import {Layout, Typography} from "antd";
 import {SearchForm} from "../SearchPage/SearchForm";
 import {ClassTreeSearch} from "../ClassTree/ClassTreeSearch";
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
-import {TestPage} from "../../other/TestPage";
-
-function setToken(userToken: string) {
-    sessionStorage.setItem('token', JSON.stringify(userToken));
-}
-
-function setUser(username: string) {
-    sessionStorage.setItem('user', JSON.stringify(username));
-}
-
-function setRole(username: string) {
-    sessionStorage.setItem('role', JSON.stringify(username));
-}
-
-export function getToken() {
-    // @ts-ignore
-    const tokenString: string = sessionStorage.getItem('token')?.replaceAll('"', '');
-    return tokenString;
-}
-
-export function getUser() {
-    // @ts-ignore
-    const userString: string = sessionStorage.getItem('user')?.replaceAll('"', '');
-    return userString;
-}
-
-export function getRole() {
-    // @ts-ignore
-    const tokenString: string = sessionStorage.getItem('role')?.replaceAll('"', '');
-    return tokenString;
-}
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 export function App() {
     const queryClient = new QueryClient({
@@ -56,8 +26,9 @@ export function App() {
             },
         },
     })
-    const token: string = getToken();
-    const user: string = getUser();
+    const token: string = GetToken();
+    const user: string = GetUser();
+    const [collapsed, setCollapsed] = useState(false);
     // return (<TestPage/>); //fixme delete this
     if (!token || !user) {
         return (
@@ -66,11 +37,9 @@ export function App() {
                     <BrowserRouter>
                         <Layout.Content className="row content">
                             <Routes>
-                                <Route path="/"
-                                       element={<Login setToken={setToken} setUser={setUser} setRole={setRole}/>}/>
-                                <Route path="/login"
-                                       element={<Login setToken={setToken} setUser={setUser} setRole={setRole}/>}/>
                                 <Route path="/register" element={<Register/>}/>
+                                <Route path="*"
+                                       element={<Login/>}/>
                             </Routes>
                         </Layout.Content>
                         <Layout.Footer className="row footer">
@@ -82,35 +51,37 @@ export function App() {
         )
     }
     return (
-        <Layout className="box">
-            <QueryClientProvider client={queryClient}>
-                <BrowserRouter>
-                    <Layout.Header className="row header">
-                        <Navbar getUser={getUser}/>
-                    </Layout.Header>
-                    <Layout.Content className="row content">
-                        <Routes>
-                            <Route path="/" element={<Home/>}/>
-                            <Route path="/login"
-                                   element={<Login setToken={setToken} setUser={setUser} setRole={setRole}/>}/>
-                            <Route path="/register" element={<Register/>}/>
-                            <Route path="/class-tree"
-                                   element={<ClassTreeSearch getUser={getUser} getToken={getToken}/>}/>
-                            <Route path="/search"
-                                   element={<SearchForm getToken={getToken} getUser={getUser} getRole={getRole}/>}/>
-                            <Route path="/:user" element={<UserPage getToken={getToken} getUser={getUser}/>}/>
-                            <Route path="/:user/:project_path/*"
-                                   element={<ProjectPage getToken={getToken} getUser={getUser}/>}/>
-                            <Route path="/file/:user/*" element={<FileView getToken={getToken} getUser={getUser}/>}/>
-                            <Route path='*' element={<Page404/>}/>
-                        </Routes>
-                    </Layout.Content>
-                    <Layout.Footer className="row footer">
-                        <Typography.Text>Top 1 file server of the world</Typography.Text>
-                    </Layout.Footer>
-                </BrowserRouter>
-                <ReactQueryDevtools initialIsOpen={true}/>
-            </QueryClientProvider>
-        </Layout>
+        <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+                <Layout className="box">
+                    <Layout.Sider collapsible breakpoint="lg" trigger={null} collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} className="row header">
+                        <Navbar collapsed={collapsed} setCollapsed={setCollapsed}/>
+                    </Layout.Sider>
+                    <Layout>
+                        <Layout.Content className="row content">
+                            <Routes>
+                                <Route path="/" element={<Home/>}/>
+                                <Route path="/login"
+                                       element={<Login/>}/>
+                                <Route path="/register" element={<Register/>}/>
+                                <Route path="/class-tree"
+                                       element={<ClassTreeSearch/>}/>
+                                <Route path="/search"
+                                       element={<SearchForm/>}/>
+                                <Route path="/:user" element={<UserPage/>}/>
+                                <Route path="/:user/:project_path/*"
+                                       element={<ProjectPage/>}/>
+                                <Route path="/file/:user/*" element={<FileView/>}/>
+                                <Route path='*' element={<Page404/>}/>
+                            </Routes>
+                        </Layout.Content>
+                        <Layout.Footer className="row footer">
+                            <Typography.Text>Top 1 file server of the world</Typography.Text>
+                        </Layout.Footer>
+                    </Layout>
+                </Layout>
+            </BrowserRouter>
+            <ReactQueryDevtools initialIsOpen={true}/>
+        </QueryClientProvider>
     );
 }

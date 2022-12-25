@@ -4,9 +4,10 @@ import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {ClockCircleTwoTone, EditTwoTone} from "@ant-design/icons";
 import {api_url} from "./Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 //@ts-ignore
-export function ClassificationTree({getUser, getToken, onClassCheck}) {
+export function ClassificationTree({onClassCheck}) {
 
     const [expandedKeys, setExpandedKeys] = useState<React.Key[]>();
     const [checkedKeys, setCheckedKeys] = useState<React.Key[]>();
@@ -21,8 +22,8 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
             queryFn: async () => {
                 return await axios.get(api_url + "/class_tree", {
                     params: {
-                        user: getUser(),
-                        token: getToken()
+                        user: GetUser(),
+                        token: GetToken()
                     }
                 })
             }
@@ -62,8 +63,8 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
         const s = await axios.get(api_url + "/rmclass", {
             params: {
                 class_name: editKey,
-                user: getUser(),
-                token: getToken()
+                user: GetUser(),
+                token: GetToken()
             }
         }).then(value => value.data).catch(value => value.response)
         if (s.data) {
@@ -85,8 +86,8 @@ export function ClassificationTree({getUser, getToken, onClassCheck}) {
             params: {
                 class_name: editKey,
                 child_name: values['child'],
-                user: getUser(),
-                token: getToken()
+                user: GetUser(),
+                token: GetToken()
             }
         }).then(value => value.data).catch(value => value.response)
         if (s.data) {

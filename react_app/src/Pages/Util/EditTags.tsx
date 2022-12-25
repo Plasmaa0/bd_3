@@ -6,9 +6,10 @@ import {tags_for_antd_select} from "./tags_complete";
 import {CustomTagProps} from "rc-select/lib/BaseSelect";
 import {UniqueColorFromString} from "./Utils";
 import {api_url} from "../ClassTree/Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
-export function EditTags({data, user, loc, getToken, getUser, setNeedToRefetch}) {
+export function EditTags({data, user, loc, setNeedToRefetch}) {
 
     const [isModalOpen, setIsModalOpen] = useState(false); // edit tags modal
 
@@ -26,8 +27,8 @@ export function EditTags({data, user, loc, getToken, getUser, setNeedToRefetch})
         const path = api_url + `/edit_tags/${user}/${loc}?` +
             // @ts-ignore
             new URLSearchParams({
-                token: getToken(), tags: new_tags,
-                user: getUser()
+                token: GetToken(), tags: new_tags,
+                user: GetUser()
             })
         const s = await get(path).then(value => value.data).catch(value => value.response)
         if (s.data) {

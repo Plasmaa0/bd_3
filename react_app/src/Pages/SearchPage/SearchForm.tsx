@@ -8,17 +8,18 @@ import {ProjectsTable} from "../Tables/ProjectsTable";
 import {FilesTable} from "../Tables/FilesTable";
 import {UsersTable} from "../Tables/UsersTable";
 import {api_url} from "../ClassTree/Config";
+import {GetRole, GetToken, GetUser} from "../../Functions/DataStoring";
 
-function getQueryFn(search_type: string, getUser: () => string, getToken: () => string, searchParameters: {}) {
+function getQueryFn(search_type: string, searchParameters: {}) {
     return () => {
-        return get(api_url + `/search/${search_type}/${getUser()}?` + new URLSearchParams({
-            token: getToken()
+        return get(api_url + `/search/${search_type}/${GetUser()}?` + new URLSearchParams({
+            token: GetToken()
         }), {params: searchParameters})
     };
 }
 
 // @ts-ignore
-export function SearchForm({getToken, getUser, getRole}) {
+export function SearchForm() {
 
     const [searchParamsForm] = Form.useForm();
     const [selectedForm, setSelectedForm] = useState<string>('projects');
@@ -31,9 +32,9 @@ export function SearchForm({getToken, getUser, getRole}) {
         {
             queryKey: ["searchFormMutation"],
             queryFn: async () => {
-                return await axios.post(api_url + `/search/${search_type}/${getUser()}`, searchParameters, {
+                return await axios.post(api_url + `/search/${search_type}/${GetUser()}`, searchParameters, {
                     params: {
-                        token: getToken(),
+                        token: GetToken(),
                     },
                 })
             },
@@ -66,16 +67,16 @@ export function SearchForm({getToken, getUser, getRole}) {
         })
         setNeedToRefetch(true)
     }
-    const role = getRole();
-    const username = getUser();
+    const role = GetRole();
+    const username = GetUser();
     const {isLoading: isClassTreeLoading, error: ClassTreeError, data: classTreeData} = useQuery(
         {
             queryKey: ["getClassTree"],
             queryFn: async () => {
                 return await axios.get(api_url + "/class_tree", {
                     params: {
-                        user: getUser(),
-                        token: getToken()
+                        user: GetUser(),
+                        token: GetToken()
                     }
                 })
             }
@@ -283,7 +284,7 @@ export function SearchForm({getToken, getUser, getRole}) {
                 return <FilesTable data={data}/>
             case 'users':
                 // @ts-ignore
-                return <UsersTable data={data} getToken={getToken} getUser={getUser}/>
+                return <UsersTable data={data} getToken={GetToken} getUser={GetUser}/>
             default:
                 return <Typography.Text>Something went wrong</Typography.Text>
         }

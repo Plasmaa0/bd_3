@@ -6,9 +6,10 @@ import {ClockCircleTwoTone, InboxOutlined} from "@ant-design/icons";
 import {ClassificationTree} from "./ClassificationTree";
 import {ProjectsTable} from "../Tables/ProjectsTable";
 import {api_url} from "./Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
-export function ClassTreeSearch({getUser, getToken}) {
+export function ClassTreeSearch() {
     const [needToRefetch, setNeedToRefetch] = useState(true);
     const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
     const {isLoading, isFetching, isPaused, error, data, refetch} = useQuery(
@@ -17,8 +18,8 @@ export function ClassTreeSearch({getUser, getToken}) {
             queryFn: async () => {
                 return await axios.get(api_url + "/class_tree", {
                     params: {
-                        user: getUser(),
-                        token: getToken()
+                        user: GetUser(),
+                        token: GetToken()
                     }
                 })
             }
@@ -39,8 +40,8 @@ export function ClassTreeSearch({getUser, getToken}) {
             mutationFn: async variables => {
                 return await axios.post(api_url + "/classification", variables, {
                     params: {
-                        user: getUser(),
-                        token: getToken()
+                        user: GetUser(),
+                        token: GetToken()
                     }
                 })
             },
@@ -64,9 +65,9 @@ export function ClassTreeSearch({getUser, getToken}) {
         name: 'file',
         multiple: true,
         directory: true,
-        action: file => api_url + `/uploadfiles/${getUser()}/${file.webkitRelativePath}?` + new URLSearchParams({
-            token: getToken(),
-            user: getUser(),
+        action: file => api_url + `/uploadfiles/${GetUser()}/${file.webkitRelativePath}?` + new URLSearchParams({
+            token: GetToken(),
+            user: GetUser(),
             create_missing_dir: '1',
             // @ts-ignore
             class_names: checkedKeys.join('/')
@@ -111,11 +112,11 @@ export function ClassTreeSearch({getUser, getToken}) {
         <Space align="start">
             <Space direction="vertical">
                 <Typography.Title>Class tree</Typography.Title>
-                <ClassificationTree getToken={getToken} getUser={getUser}
-                                    onClassCheck={(checkedValues: React.SetStateAction<React.Key[] | undefined | any>) => {
-                                        mutation.mutate(checkedValues)
-                                        setCheckedKeys(checkedValues)
-                                    }}/>
+                <ClassificationTree
+                    onClassCheck={(checkedValues: React.SetStateAction<React.Key[] | undefined | any>) => {
+                        mutation.mutate(checkedValues)
+                        setCheckedKeys(checkedValues)
+                    }}/>
             </Space>
             <Divider type="vertical"/>
             <Space direction="vertical">

@@ -3,13 +3,14 @@ import get from "axios";
 import {Button, message, Popconfirm} from "antd";
 import {DeleteOutlined} from "@ant-design/icons";
 import {api_url} from "../ClassTree/Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
-export function DeleteButton({getToken, getUser, setNeedToRefetch, user, location, type}) {
+export function DeleteButton({setNeedToRefetch, user, location, type}) {
     const confirm = async () => {
         const s = await get(api_url + `/${type}/` + user + '/' + location + '?' + new URLSearchParams({
-            token: getToken(),
-            user: getUser()
+            token: GetToken(),
+            user: GetUser()
         })).then(value => value.data).catch(value => value.response)
         if (s.data) {
             message.error(s.data)

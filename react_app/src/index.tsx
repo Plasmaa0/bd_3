@@ -4,6 +4,7 @@ import './styles/index.css';
 import {App} from "./Pages/Global/App";
 import reportWebVitals from './other/reportWebVitals';
 import {ConfigProvider, theme} from "antd";
+import {CookiesProvider} from "react-cookie";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -35,7 +36,9 @@ root.render(
             },
             algorithm: [defaultAlgorithm, compactAlgorithm],
         }}>
-            <App/>
+            <CookiesProvider>
+                <App/>
+            </CookiesProvider>
         </ConfigProvider>
     </React.StrictMode>
 );

@@ -1,8 +1,8 @@
 import {Button} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
-import { api_url } from "../ClassTree/Config";
-import { getToken, getUser } from "../Global/App";
-import { useLocation } from "react-router-dom";
+import {api_url} from "../ClassTree/Config";
+import {useLocation} from "react-router-dom";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 export function DownloadProject() {
     const location = useLocation().pathname.split('/');
@@ -13,12 +13,12 @@ export function DownloadProject() {
     }
     while (loc.endsWith('/'))
         loc = loc.slice(0, -1)
-   return (
+    return (
         <Button type="primary"
                 shape="round"
                 icon={<DownloadOutlined/>}
                 size='middle'
-                href={`${api_url}/download/${loc}?`+ new URLSearchParams({user: getUser(), token:getToken()})}
+                href={`${api_url}/download/${loc}?` + new URLSearchParams({user: GetUser(), token: GetToken()})}
         >
             Download
         </Button>

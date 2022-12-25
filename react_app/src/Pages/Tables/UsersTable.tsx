@@ -4,10 +4,11 @@ import get from "axios";
 import {Link} from "react-router-dom";
 import {EditOutlined} from "@ant-design/icons";
 import {api_url} from "../ClassTree/Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 
 // @ts-ignore
-export function UsersTable({data, getToken, getUser}) {
+export function UsersTable({data}) {
     const [editRoleForm] = Form.useForm();
     const [editRoleUser, setEditRoleUser] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false); // edit tags modal
@@ -20,8 +21,8 @@ export function UsersTable({data, getToken, getUser}) {
             // @ts-ignore
             new URLSearchParams({
                 new_role: newRole,
-                token: getToken(),
-                user: getUser()
+                token: GetToken(),
+                user: GetUser()
             })
         await get(path).then((res) => res.data)
         message.success("Role updated!")

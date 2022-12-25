@@ -9,9 +9,10 @@ import {ProjectPageHeader} from "./ProjectPageHeader";
 import {ProjectPageContent} from "./ProjectPageContent";
 import {PageBreadcrumb} from "./PageBreadcrumb";
 import {api_url} from "../ClassTree/Config";
+import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
-export function ProjectPage({getToken, getUser}) {
+export function ProjectPage() {
     const {user, project_path} = useParams<string>();
     const [needToRefetch, setNeedToRefetch] = useState(false);
 
@@ -27,8 +28,8 @@ export function ProjectPage({getToken, getUser}) {
 
     const {isLoading, isFetching, error, data, refetch} = useQuery(["projectPageData"], () =>
         get(api_url + "/dir/" + user + '/' + loc + '?' + new URLSearchParams({
-            token: getToken(),
-            user: getUser()
+            token: GetToken(),
+            user: GetUser()
         }))
             .then((res) => res.data)
     );
@@ -57,9 +58,7 @@ export function ProjectPage({getToken, getUser}) {
                     </Link>
                     <DeleteButton type="rm"
                                   user={user}
-                                  getToken={getToken}
                                   setNeedToRefetch={setNeedToRefetch}
-                                  getUser={getUser}
                                   location={loc + '/' + text}/>
                 </Space>
         },
@@ -90,9 +89,7 @@ export function ProjectPage({getToken, getUser}) {
                     </Link>
                     <DeleteButton type="rmdir"
                                   user={user}
-                                  getToken={getToken}
                                   setNeedToRefetch={setNeedToRefetch}
-                                  getUser={getUser}
                                   location={loc + '/' + text}/>
                 </Space>
         },
@@ -142,15 +139,15 @@ export function ProjectPage({getToken, getUser}) {
         name: 'file',
         multiple: true,
         action: api_url + `/uploadfiles/${user}/${loc}?` + new URLSearchParams({
-            token: getToken(),
-            user: getUser()
+            token: GetToken(),
+            user: GetUser()
         }),
         method: "POST",
         onChange(info) {
             let deferred_refetch = true;
-            for(let i = 0; i< info.fileList.length; i++){
+            for (let i = 0; i < info.fileList.length; i++) {
                 const f = info.fileList[i];
-                if (f.status === 'uploading'){
+                if (f.status === 'uploading') {
                     deferred_refetch = false;
                 }
             }
@@ -162,14 +159,16 @@ export function ProjectPage({getToken, getUser}) {
             } else if (info.file.status === 'error') {
                 message.error(`${info.file.name} file upload failed.`);
             }
-            if(deferred_refetch){
-                message.success('Файлы загружены.\nСтраница обновится через 5 секунд.', 
-                                5, 
-                                ()=>{setNeedToRefetch(true)}
-                                )
+            if (deferred_refetch) {
+                message.success('Файлы загружены.\nСтраница обновится через 5 секунд.',
+                    5,
+                    () => {
+                        setNeedToRefetch(true)
+                    }
+                )
             }
         },
-        
+
     };
 
 
@@ -177,13 +176,13 @@ export function ProjectPage({getToken, getUser}) {
         <div>
             <PageBreadcrumb setNeedToRefetch={setNeedToRefetch}/>
             <Space size="large" direction="vertical" style={{display: 'flex'}}>
-                <ProjectPageHeader loc={loc} tags={tags} user={getUser} user1={user} token={getToken}
+                <ProjectPageHeader loc={loc} tags={tags} user1={user}
                                    needToRefetch={setNeedToRefetch} data={data} props={props}/>
                 {/*@ts-ignore*/}
                 <ProjectPageContent data={data} columns={childrenProjectsColumns} columns1={filesColumns}/>
                 <Routes>
                     <Route path={`${loc}/:project_path/*`}
-                           element={<ProjectPage getToken={getToken} getUser={getUser}/>}/>
+                           element={<ProjectPage/>}/>
                 </Routes>
             </Space>
         </div>);

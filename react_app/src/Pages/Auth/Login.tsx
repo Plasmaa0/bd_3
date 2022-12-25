@@ -1,7 +1,8 @@
 import React from "react";
-import {Link, useNavigate, redirect} from "react-router-dom";
-import {Form, Input, Button, Typography, message} from "antd";
+import {useNavigate} from "react-router-dom";
+import {Button, Form, Input, message, Typography} from "antd";
 import {api_url} from "../ClassTree/Config";
+import {useCookies} from "react-cookie";
 
 async function loginUser(username: string, password: string) {
     return fetch(api_url + "/login?" + new URLSearchParams({
@@ -15,8 +16,9 @@ async function loginUser(username: string, password: string) {
 }
 
 // @ts-ignore
-export function Login({setToken, setUser, setRole}) {
+export function Login() {
     const navigate = useNavigate()
+    const [cookies, setCookie] = useCookies(['user', 'token', 'role'])
     const handleSubmit = async (values: any) => {
         if (!canSubmit(values)) {
             console.log("not trying to log")
@@ -34,9 +36,9 @@ export function Login({setToken, setUser, setRole}) {
             message.error(await jsonData);
         } else {
             message.success("successful login")
-            setToken(token);
-            setUser(values['username']);
-            setRole(await jsonData['role']);
+            setCookie('token', JSON.stringify(token).replaceAll('"',''));
+            setCookie('user', JSON.stringify(values['username']).replaceAll('"',''));
+            setCookie('role', JSON.stringify(await jsonData['role']).replaceAll('"',''));
             navigate('/')
             window.location.reload();
         }
