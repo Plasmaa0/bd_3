@@ -12,7 +12,7 @@ import database_interactions
 import file_interactions
 from file_interactions import DATA_DIR
 
-# database_interactions.init_db()
+database_interactions.init_db()
 
 app = FastAPI()
 
@@ -366,11 +366,25 @@ async def test_path():
 
 
 @app.get('/download/{user_page}/{project_path:path}')
-async def download_project(user_page: str, project_path: str, user: str = '', token: str = ''):
+async def download_project(user_page: str, project_path: str, user: str = '', token: str = '', ext: str = ''):
+    success, msg = database_interactions.check_auth(user, token)  # todo check_auth vs chech_permissions_and_auth??!
+    if not success:
+        print(msg)
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
+    print(ext)
+    if ext not in ["zip", "tar", "gztar", "bztar", "xztar"]:
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="Unsupported download archive extension")
     path = f'{DATA_DIR}/{user_page}/{project_path}'
+    ext_to_file_suffix = {
+        "zip": "zip",
+        "tar": "tar",
+        "gztar": "tar.gz",
+        "bztar": "tar.bz2",
+        "xztar": "tar.xz"
+    }
     try:
-        make_archive(path, 'zip', path)
-        return FileResponse(f'{path}.zip')
+        make_archive(f'{path}_{ext}', ext, path)
+        return FileResponse(f'{path}_{ext}.{ext_to_file_suffix[ext]}')
     except Exception as e:
         print(e)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed to create zip archive")

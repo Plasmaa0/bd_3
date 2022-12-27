@@ -2,8 +2,11 @@ import React from 'react';
 import {Link, useLocation, useParams} from "react-router-dom";
 import {useQuery} from "@tanstack/react-query";
 import get from "axios";
+//@ts-ignore
+import SyntaxHighlighter from 'react-syntax-highlighter';
+
 import {Breadcrumb, Image, Typography} from "antd";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
@@ -97,8 +100,18 @@ export function FileView() {
                 )
             }
         }
+        const convert_ext_to_name = (ext: string|undefined) => {
+            if (ext === 'js') {
+                return 'javascript'
+            }
+            return ext
+        }
         return (
-            <Typography.Text>{data.replace(/(?:\r\n|\r|\n)/g, '<br>')}</Typography.Text>
+            <div>
+                <SyntaxHighlighter language={convert_ext_to_name(loc?.split('.')?.pop())}>
+                    {data}
+                </SyntaxHighlighter>
+            </div>
         )
     }
 

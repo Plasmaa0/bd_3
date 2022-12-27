@@ -8,7 +8,7 @@ import {DeleteButton} from "../Util/DeleteButton";
 import {ProjectPageHeader} from "./ProjectPageHeader";
 import {ProjectPageContent} from "./ProjectPageContent";
 import {PageBreadcrumb} from "./PageBreadcrumb";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore

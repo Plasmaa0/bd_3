@@ -16,7 +16,7 @@ import {GetUser, logout} from "../../Functions/DataStoring";
 // @ts-ignore
 export function Navbar({collapsed, setCollapsed}) {
     return (
-        <Menu mode="inline" style={{height: "100vh"}}>
+        <Menu mode="inline" style={{height: "100%"}}>
             <Menu.Item key="burger" icon={collapsed ? <MenuUnfoldOutlined/> : <MenuFoldOutlined/>} onClick={
                 () => {
                     setCollapsed(!collapsed)

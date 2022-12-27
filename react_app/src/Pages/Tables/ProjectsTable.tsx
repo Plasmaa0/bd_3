@@ -5,7 +5,7 @@ import React from "react";
 
 //@ts-ignore
 export function ProjectsTable({data}) {
-    return <Table dataSource={data} pagination={false}>
+    return <Table dataSource={data} pagination={{hideOnSinglePage: true}}>
         <Table.Column
             title="Name"
             dataIndex="name"

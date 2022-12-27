@@ -54,7 +54,8 @@ export function App() {
         <QueryClientProvider client={queryClient}>
             <BrowserRouter>
                 <Layout className="box">
-                    <Layout.Sider collapsible breakpoint="lg" trigger={null} collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} className="row header">
+                    <Layout.Sider collapsible breakpoint="lg" trigger={null} collapsed={collapsed}
+                                  onCollapse={(value) => setCollapsed(value)} className="row header">
                         <Navbar collapsed={collapsed} setCollapsed={setCollapsed}/>
                     </Layout.Sider>
                     <Layout>

@@ -3,7 +3,7 @@ import React, {useState} from "react";
 import get from "axios";
 import {Link} from "react-router-dom";
 import {EditOutlined} from "@ant-design/icons";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 
@@ -37,7 +37,7 @@ export function UsersTable({data}) {
         setIsModalOpen(false);
     };
 
-    return <Table dataSource={data.data} pagination={false}>
+    return <Table dataSource={data.data} pagination={{hideOnSinglePage: true}}>
         <Table.Column
             title="Name"
             key="name"

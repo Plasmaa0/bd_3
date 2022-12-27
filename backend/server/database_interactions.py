@@ -8,7 +8,7 @@ from typing import Tuple, List
 
 import psycopg2
 
-START_LOCAL = False
+START_LOCAL = True
 
 POSTGRES_CONNECTION_SETTINGS = {}
 

@@ -1,6 +1,6 @@
 import React from "react";
 import {Button, Form, Input, message, Typography} from "antd";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 
 async function RegisterUser(username: string, password: string) {
     return fetch(api_url + "/register?" + new URLSearchParams({

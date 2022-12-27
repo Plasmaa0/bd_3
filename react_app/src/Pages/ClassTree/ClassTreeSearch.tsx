@@ -5,7 +5,7 @@ import axios from "axios";
 import {ClockCircleTwoTone, InboxOutlined} from "@ant-design/icons";
 import {ClassificationTree} from "./ClassificationTree";
 import {ProjectsTable} from "../Tables/ProjectsTable";
-import {api_url} from "./Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore

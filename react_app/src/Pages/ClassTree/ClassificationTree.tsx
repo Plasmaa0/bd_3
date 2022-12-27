@@ -3,7 +3,7 @@ import {Button, Form, Input, message, Modal, Popconfirm, Space, Tree, TreeDataNo
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {ClockCircleTwoTone, EditTwoTone} from "@ant-design/icons";
-import {api_url} from "./Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 //@ts-ignore

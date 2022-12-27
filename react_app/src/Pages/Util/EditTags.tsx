@@ -5,7 +5,7 @@ import get from "axios";
 import {tags_for_antd_select} from "./tags_complete";
 import {CustomTagProps} from "rc-select/lib/BaseSelect";
 import {UniqueColorFromString} from "./Utils";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
@@ -65,7 +65,7 @@ export function EditTags({data, user, loc, setNeedToRefetch}) {
     };
     return (
         <Space>
-            <Tooltip title="Edit tags" placement="right">
+            <Tooltip title="Edit tags" placement="bottom">
                 <Button type="primary" onClick={showModal}>
                     <EditOutlined/>
                 </Button>

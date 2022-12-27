@@ -6,7 +6,7 @@ import {UniqueColorFromString} from "../Util/Utils";
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {ClockCircleTwoTone} from "@ant-design/icons";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore

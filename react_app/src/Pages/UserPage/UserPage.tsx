@@ -1,13 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useParams} from "react-router-dom";
-import {Collapse, Space, Table, Tag, Typography} from "antd";
+import {Col, Collapse, Row, Space, Table, Tag, Typography} from "antd";
 import {useQuery} from "@tanstack/react-query";
 import get from "axios";
 import {ClockCircleTwoTone} from "@ant-design/icons"
 import {AddProjectForm} from "./addProjectForm";
 import {UniqueColorFromString} from "../Util/Utils";
 import {DeleteButton} from "../Util/DeleteButton";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore
@@ -90,15 +90,31 @@ export function UserPage() {
         ];
         return (
             <div>
-                <Space size="middle" direction="horizontal" style={{display: "flex", justifyContent: "space-between"}}>
-                    <Typography.Title>User page: {user}</Typography.Title>
-                    <Collapse>
-                        <Collapse.Panel header="Add project" key="1">
-                            <AddProjectForm existingProjects={data} user={user} setNeedToRefetch={setNeedToRefetch}/>
-                        </Collapse.Panel>
-                    </Collapse>
-                </Space>
-                <Table pagination={false} columns={columns} dataSource={data}></Table>
+                <Row justify="space-between" align="middle" gutter={[16, 24]}>
+                    <Col>
+                        <Row>
+                            <Col>
+                                <Typography.Title level={2}>
+                                    User page:
+                                </Typography.Title>
+                            </Col>
+                            <Col>
+                                <Typography.Title level={2} code={true}>
+                                    {user}
+                                </Typography.Title>
+                            </Col>
+                        </Row>
+                    </Col>
+                    <Col>
+                        <Collapse>
+                            <Collapse.Panel header="Add project" key="1">
+                                <AddProjectForm existingProjects={data} user={user}
+                                                setNeedToRefetch={setNeedToRefetch}/>
+                            </Collapse.Panel>
+                        </Collapse>
+                    </Col>
+                </Row>
+                <Table pagination={{hideOnSinglePage: true}} columns={columns} dataSource={data}></Table>
             </div>)
     }
     return (<div><h1>User page: {user}</h1></div>)

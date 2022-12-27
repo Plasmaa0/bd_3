@@ -2,7 +2,7 @@ import React from "react";
 import get from "axios";
 import {Button, message, Popconfirm} from "antd";
 import {DeleteOutlined} from "@ant-design/icons";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 // @ts-ignore

@@ -7,7 +7,7 @@ import {ClockCircleTwoTone} from "@ant-design/icons";
 import {ProjectsTable} from "../Tables/ProjectsTable";
 import {FilesTable} from "../Tables/FilesTable";
 import {UsersTable} from "../Tables/UsersTable";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {GetRole, GetToken, GetUser} from "../../Functions/DataStoring";
 
 function getQueryFn(search_type: string, searchParameters: {}) {

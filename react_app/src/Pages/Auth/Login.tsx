@@ -1,7 +1,7 @@
 import React from "react";
 import {useNavigate} from "react-router-dom";
 import {Button, Form, Input, message, Typography} from "antd";
-import {api_url} from "../ClassTree/Config";
+import {api_url} from "../../Config";
 import {useCookies} from "react-cookie";
 
 async function loginUser(username: string, password: string) {

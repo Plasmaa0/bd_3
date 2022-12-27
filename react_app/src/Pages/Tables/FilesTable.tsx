@@ -3,7 +3,7 @@ import {Link} from "react-router-dom";
 import React from "react";
 
 export function FilesTable(props: { data: { data: readonly any[] | undefined; } }) {
-    return <Table dataSource={props.data.data} pagination={false}>
+    return <Table dataSource={props.data.data} pagination={{hideOnSinglePage: true, defaultPageSize:10}} >
         <Table.Column
             title="Name"
             dataIndex="name"
