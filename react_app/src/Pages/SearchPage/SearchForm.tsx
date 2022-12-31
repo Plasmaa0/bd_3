@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Button, Divider, Form, Input, InputNumber, message, Select, Space, TreeSelect, Typography} from "antd";
+import {Button, Col, Form, Input, InputNumber, message, Row, Select, Space, TreeSelect, Typography} from "antd";
 import {useQuery} from "@tanstack/react-query";
 import get from "axios";
 import axios from "axios";
@@ -30,7 +30,7 @@ export function SearchForm() {
     const [search_type, setSearch_type] = useState('projects');
     const {isLoading, error, data, isPaused, isFetching, refetch} = useQuery(
         {
-            queryKey: ["searchFormMutation"],
+            queryKey: ["searchFormQuery"],
             queryFn: async () => {
                 return await axios.post(api_url + `/search/${search_type}/${GetUser()}`, searchParameters, {
                     params: {
@@ -91,10 +91,18 @@ export function SearchForm() {
             <Form
                 key="1"
                 name="basic"
-                labelCol={{span: 8}}
-                wrapperCol={{span: 16}}
+                layout={window.innerWidth < 500 ? 'vertical' : 'horizontal'}
+                labelCol={{span: window.innerWidth < 500 ? 16 : 8}}
+                wrapperCol={{span: window.innerWidth < 500 ? 16 : 16}}
                 validateTrigger="onChange"
                 autoComplete="off"
+                initialValues={
+                    {
+                        'owner-name': (role === 'admin' ? '%' : username),
+                        'project-name': '%',
+                        'tags': '%'
+                    }
+                }
                 onFinish={handleProjectSearch}>
                 <Form.Item label="Owner name"
                            name="owner-name"
@@ -151,7 +159,8 @@ export function SearchForm() {
                         Search
                     </Button>
                 </Form.Item>
-            </Form></Space>
+            </Form>
+        </Space>
 
     const handleUserSearch = async (values: any) => {
         setSearchParameters({
@@ -163,42 +172,51 @@ export function SearchForm() {
     }
     searchParamsForm.setFieldValue('role', 'default')
     const UserSearchForm = () =>
-        <Space><Form
-            form={searchParamsForm}
-            key="2"
-            name="basic"
-            labelCol={{span: 8}}
-            wrapperCol={{span: 16}}
-            validateTrigger="onChange"
-            autoComplete="off"
-            onFinish={handleUserSearch}>
-            <Form.Item label="User name"
-                       name="user-name"
-                       rules={[{required: true, message: "Required"}]}>
-                <Input/>
-            </Form.Item>
-            <Form.Item label="Role"
-                       name="role">
-                <Select
-                    showArrow
-                    defaultValue={'default'}
-                    style={{width: '100%'}}
-                    onChange={value => searchParamsForm.setFieldValue('role', value)}
-                    options={[{value: 'default'}, {value: 'admin'}]}
-                />
-            </Form.Item>
-            <Form.Item label="Limit"
-                       name="limit"
-                       initialValue={10}
-                       rules={[{required: true, message: "Required"}]}>
-                <InputNumber/>
-            </Form.Item>
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    Search
-                </Button>
-            </Form.Item>
-        </Form></Space>
+        <Space>
+            <Form
+                form={searchParamsForm}
+                key="2"
+                name="basic"
+                layout={window.innerWidth < 500 ? 'vertical' : 'horizontal'}
+                labelCol={{span: window.innerWidth < 500 ? 16 : 8}}
+                wrapperCol={{span: window.innerWidth < 500 ? 16 : 16}}
+                validateTrigger="onChange"
+                autoComplete="off"
+                initialValues={
+                    {
+                        'user-name': (role === 'admin' ? '%' : username),
+                        'role': 'default',
+                    }
+                }
+                onFinish={handleUserSearch}>
+                <Form.Item label="User name"
+                           name="user-name"
+                           rules={[{required: true, message: "Required"}]}>
+                    <Input/>
+                </Form.Item>
+                <Form.Item label="Role"
+                           name="role">
+                    <Select
+                        showArrow
+                        defaultValue={'default'}
+                        style={{width: '100%'}}
+                        onChange={value => searchParamsForm.setFieldValue('role', value)}
+                        options={[{value: 'default'}, {value: 'admin'}]}
+                    />
+                </Form.Item>
+                <Form.Item label="Limit"
+                           name="limit"
+                           initialValue={10}
+                           rules={[{required: true, message: "Required"}]}>
+                    <InputNumber/>
+                </Form.Item>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                        Search
+                    </Button>
+                </Form.Item>
+            </Form>
+        </Space>
     const handleFileSearch = async (values: any) => {
         setSearchParameters({
             owner: values['owner-name'],
@@ -214,10 +232,19 @@ export function SearchForm() {
             <Form
                 key="3"
                 name="basic"
-                labelCol={{span: 8}}
-                wrapperCol={{span: 16}}
+                layout={window.innerWidth < 500 ? 'vertical' : 'horizontal'}
+                labelCol={{span: window.innerWidth < 500 ? 16 : 8}}
+                wrapperCol={{span: window.innerWidth < 500 ? 16 : 16}}
                 validateTrigger="onChange"
                 autoComplete="off"
+                initialValues={
+                    {
+                        'owner-name': (role === 'admin' ? '%' : username),
+                        'parent': '%',
+                        'file-name': '%',
+                        'path': '%'
+                    }
+                }
                 onFinish={handleFileSearch}>
                 <Form.Item label="Owner name"
                            name="owner-name"
@@ -278,7 +305,7 @@ export function SearchForm() {
         switch (search_type) {
             case 'projects':
                 // @ts-ignore
-                return <ProjectsTable data={data.data}/>
+                return <ProjectsTable data={data.data} isLoading={false}/>
             case 'files':
                 // @ts-ignore
                 return <FilesTable data={data}/>
@@ -311,30 +338,35 @@ export function SearchForm() {
             })
     }
     return (
-        <Space direction="horizontal" align="start">
-            <Space direction="vertical">
-                <Typography.Title>Search</Typography.Title>
-                <Space direction="horizontal" size="large">
-                    <Typography.Text>Search for:</Typography.Text>
-                    <Select
-                        defaultValue={"projects"}
-                        style={{width: 150}}
-                        options={options}
-                        onSelect={(value: string) => {
-                            setSelectedForm(value)
-                            setSearch_type(value)
-                            setDataValid(false)
-                        }}
-                    />
+        <Row justify="space-evenly" gutter={[16, 24]}>
+            <Col>
+                <Space direction="vertical" size="large">
+                    <Typography.Title>Search</Typography.Title>
+                    <Row justify="space-evenly" gutter={[8, 8]}>
+                        <Col>
+                            <Typography.Text>Search for:</Typography.Text>
+                        </Col>
+                        <Col>
+                            <Select
+                                defaultValue={"projects"}
+                                style={{width: 150}}
+                                options={options}
+                                onSelect={(value: string) => {
+                                    setSelectedForm(value)
+                                    setSearch_type(value)
+                                    setDataValid(false)
+                                }}
+                            />
+                        </Col>
+                    </Row>
+                    {/*@ts-ignore*/}
+                    {forms[selectedForm]()}
                 </Space>
-                {/*@ts-ignore*/}
-                {forms[selectedForm]()}
-            </Space>
-            <Divider type="vertical"></Divider>
-            <Space direction="vertical">
+            </Col>
+            <Col>
                 <Typography.Title>Search result</Typography.Title>
                 <SearchResult/>
-            </Space>
-        </Space>
+            </Col>
+        </Row>
     );
 }
