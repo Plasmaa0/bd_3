@@ -8,7 +8,7 @@ from typing import Tuple, List
 
 import psycopg2
 
-START_LOCAL = True
+START_LOCAL = False
 
 POSTGRES_CONNECTION_SETTINGS = {}
 
@@ -97,7 +97,6 @@ def user_valid_token(user: str, token: str) -> bool:
         return False
     else:
         return res[1][0][0]
-
 
 def check_auth(user: str, token: str = '') -> Tuple[bool, str]:
     if len(user) == 0:
