@@ -1,9 +1,23 @@
 import React from "react";
-import {Avatar, Card, Col, DatePicker, List, message, Rate, Row, Space, TimePicker, Typography} from "antd";
+import {
+    Avatar,
+    Button,
+    Card,
+    Col,
+    DatePicker,
+    message,
+    notification,
+    Rate,
+    Row,
+    Space,
+    TimePicker,
+    Tooltip,
+    Typography
+} from "antd";
 import {geekblue, gold, green, red, volcano} from '@ant-design/colors';
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
-import {ClockCircleTwoTone} from "@ant-design/icons";
+import {ClockCircleTwoTone, EyeOutlined} from "@ant-design/icons";
 import Meta from "antd/es/card/Meta";
 import dayjs from "dayjs";
 
@@ -22,27 +36,44 @@ function GitHubIssues() {
     if (error) { // @ts-ignore
         return (<Typography.Text>Failed to load GitHub issues :(</Typography.Text>);
     }
-    // "reactions": {
-    //   "url": "https://api.github.com/repos/Plasmaa0/bd_3/issues/2/reactions",
-    //   "total_count": 0,
-    //   "+1": 0,
-    //   "-1": 0,
-    //   "laugh": 0,
-    //   "hooray": 0,
-    //   "confused": 0,
-    //   "heart": 0,
-    //   "rocket": 0,
-    //   "eyes": 0
-    // }
     // @ts-ignore
     const cards = data.data.map((entry) => {
         return (
-            <Col>
-                <Card>
+            <Col xs={24} sm={24} md={12} lg={8} xl={6} xxl={4}>
+                <Card
+                    hoverable
+                    actions={[
+                        // open github issue
+                        <Typography.Link href={entry.html_url} target="_blank">Open on Github</Typography.Link>
+                    ]}
+                >
                     <Meta
-                        avatar={<Typography.Link href={entry.user.html_url}><Avatar
-                            src={entry.user.avatar_url}/></Typography.Link>}
-                        title={<Typography.Link href={entry.html_url}>{entry.title}</Typography.Link>}
+                        avatar={
+                            <Space direction="vertical">
+                                <Typography.Link href={entry.user.html_url}>
+                                    <Avatar src={entry.user.avatar_url}/>
+                                </Typography.Link>
+
+                                <Tooltip title="See more" placement="bottomRight">
+                                    <Button icon={<EyeOutlined/>} onClick={() => {
+                                        notification.open({
+                                            message: entry.title,
+                                            description: entry.body,
+                                            duration: 0,
+                                            placement: "bottomRight",
+                                            type: "info"
+                                        })
+                                    }}/>
+                                </Tooltip>
+                            </Space>
+                        }
+                        title={
+                            <Tooltip title={entry.title} placement="topLeft">
+                                <Typography.Link href={entry.html_url} target="_blank">
+                                    {entry.title}
+                                </Typography.Link>
+                            </Tooltip>
+                        }
                         description={
                             <Space direction="vertical">
                                 <Space>
@@ -59,30 +90,32 @@ function GitHubIssues() {
                                         <TimePicker defaultValue={dayjs(entry.created_at, 'HH:mm:ss')} disabled/>
                                     </Col>
                                 </Row>
-                                <Typography.Text>Assignees:</Typography.Text>
-                                <List
-                                    dataSource={entry.assignees}
-                                    renderItem={(item) => (
-                                        // @ts-ignore
-                                        <List.Item key={item.login}>
-                                            <List.Item.Meta
-                                                // @ts-ignore
-                                                avatar={<Typography.Link href={item.url}><Avatar src={item.avatar_url}/></Typography.Link>}
-                                                // @ts-ignore
-                                                title={<Typography.Link href={item.url}>{item.login}</Typography.Link>}
-                                            />
-                                        </List.Item>
-                                    )}
-                                />
+                                {entry.assignees.length > 0 &&
+                                    <div>
+                                        <Typography.Text>Assignees:</Typography.Text>
+                                        {/*// if only one assignee use Avatar, else use Avatar.Group*/}
+                                        {entry.assignees.length === 1 ?
+                                            <Typography.Link href={entry.assignees[0].html_url}><Avatar
+                                                src={entry.assignees[0].avatar_url}/></Typography.Link> :
+                                            <Avatar.Group maxCount={2}
+                                                          maxStyle={{color: '#f56a00', backgroundColor: '#fde3cf'}}>
+                                                {/*// @ts-ignore*/}
+                                                {entry.assignees.map((assignee) => {
+                                                    return <Typography.Link href={assignee.html_url}><Avatar
+                                                        src={assignee.avatar_url}/></Typography.Link>
+                                                })}
+                                            </Avatar.Group>
+                                        }
+                                    </div>
+                                }
                             </Space>
-                        }
-                    />
+                        }/>
                 </Card>
             </Col>
         )
     })
     return (
-        <Row justify="space-between" align="middle" gutter={[16, 24]}>
+        <Row justify="space-evenly" gutter={[16, 24]}>
             {cards}
         </Row>
     )
