@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from "react-router-dom";
-import {Button, Menu, Tooltip} from 'antd';
+import {Button, Menu} from 'antd';
 import {
     DatabaseOutlined,
     FileSearchOutlined,
@@ -25,17 +25,15 @@ export function Navbar({collapsed, setCollapsed}) {
                     {collapsed ? "Open Menu" : "Close Menu"}
                 </Button>
             </Menu.Item>
-            <Menu.Item key="home" icon={<HomeOutlined/>}>
+            <Menu.Item key="home" icon={<HomeOutlined/>} onClick={() => window.location.href = '/'}>
                 <Button type="link">
                     <Link to="/">Home</Link>
                 </Button>
             </Menu.Item>
-            <Menu.Item key="profile" icon={<ProfileOutlined/>} title="Profile">
-                <Tooltip title="Profile" placement="right">
-                    <Button type="link">
-                        <Link to={`/${GetUser()}`} reloadDocument={true}>{GetUser()}</Link>
-                    </Button>
-                </Tooltip>
+            <Menu.Item key="profile" icon={<ProfileOutlined/>} title="Profile" onClick={() => window.location.href = GetUser()}>
+                <Button type="link">
+                    <Link to={`/${GetUser()}`} reloadDocument={true}>{GetUser()}</Link>
+                </Button>
             </Menu.Item>
             <Menu.SubMenu key="auth" title="Auth" icon={<KeyOutlined/>}>
                 <Menu.Item key="login">
