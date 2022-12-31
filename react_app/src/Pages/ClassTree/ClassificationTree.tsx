@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {Key, useEffect, useState} from "react";
 import {Button, Form, Input, message, Modal, Popconfirm, Space, Tree, TreeDataNode, Typography} from "antd";
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
@@ -11,7 +11,6 @@ export function ClassificationTree({onClassCheck}) {
 
     const [expandedKeys, setExpandedKeys] = useState<React.Key[]>();
     const [checkedKeys, setCheckedKeys] = useState<React.Key[]>();
-    const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
     const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editKey, setEditKey] = useState('');
@@ -49,8 +48,18 @@ export function ClassificationTree({onClassCheck}) {
         onClassCheck(checkedKeysValue)
     };
 
-    const onSelect = (selectedKeysValue: React.Key[], info: any) => {
-        setSelectedKeys(selectedKeysValue);
+    const onSelect = (selectedKeys: Key[], info: {
+                          event: "select";
+                          selected: boolean;
+                          node: React.Key;
+                          selectedNodes: any;
+                          nativeEvent: MouseEvent;
+                      }
+    ) => {
+        // @ts-ignore
+        setCheckedKeys([info.node.key]);
+        // @ts-ignore
+        onClassCheck([info.node.key])
     };
 
 
@@ -60,20 +69,20 @@ export function ClassificationTree({onClassCheck}) {
 
     const handleDeleteClass = async () => {
         setIsModalOpen(false);
-        const s = await axios.get(api_url + "/rmclass", {
+        await axios.get(api_url + "/rmclass", {
             params: {
                 class_name: editKey,
                 user: GetUser(),
                 token: GetToken()
             }
-        }).then(value => value.data).catch(value => value.response)
-        if (s.data) {
-            message.error(s.data)
-        } else {
-            message.success(`Class ${editKey} deleted!`);
+        }).then(value => {
+            message.success(`Class '${editKey}' deleted!`);
             setNeedToRefetch(true);
             setCheckedKeys([])
-        }
+            return value.data;
+        }).catch(value => {
+            message.error(value.response.data)
+        })
     };
 
     const handleCancel = () => {
@@ -82,24 +91,25 @@ export function ClassificationTree({onClassCheck}) {
     };
     const addChild = async (values: any) => {
         setIsModalOpen(false);
-        const s = await axios.get(api_url + "/add_child_class", {
+        await axios.get(api_url + "/add_child_class", {
             params: {
                 class_name: editKey,
                 child_name: values['child'],
                 user: GetUser(),
                 token: GetToken()
             }
-        }).then(value => value.data).catch(value => value.response)
-        if (s.data) {
-            message.error(s.data)
-        } else {
-            message.info(`Added ${values['child']} as child to ${editKey}`);
+        }).then(value => {
+            message.info(`Added '${values['child']}' as child to '${editKey}'`);
             setNeedToRefetch(true);
-        }
+            return value.data;
+        }).catch(value => {
+            message.error(value.response.data)
+        })
     }
     return (
         <Space direction="vertical">
             <Modal
+                onCancel={handleCancel}
                 title={`Editing tree node ${editKey}`}
                 open={isModalOpen}
                 footer={[
@@ -146,6 +156,17 @@ export function ClassificationTree({onClassCheck}) {
                 autoExpandParent={autoExpandParent}
                 onCheck={onCheck}
                 checkedKeys={checkedKeys}
+                showIcon={true}
+                icon={
+                    // @ts-ignore
+                    (props) => {
+                        return <EditTwoTone twoToneColor='green' onClick={() => {
+                            setEditKey(props.value);
+                            showModal();
+                        }}/>
+                    }
+                }
+                // @ts-ignore
                 onSelect={onSelect}
                 defaultExpandAll={true}
                 onRightClick={(info: {
