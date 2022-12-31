@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Divider, message, Space, Typography, Upload, UploadProps} from "antd";
+import {Col, message, Row, Space, Typography, Upload, UploadProps} from "antd";
 import {useMutation, useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {ClockCircleTwoTone, InboxOutlined} from "@ant-design/icons";
@@ -109,21 +109,24 @@ export function ClassTreeSearch() {
     }
 
     return (
-        <Space align="start">
-            <Space direction="vertical">
-                <Typography.Title>Class tree</Typography.Title>
-                <ClassificationTree
-                    onClassCheck={(checkedValues: React.SetStateAction<React.Key[] | undefined | any>) => {
-                        mutation.mutate(checkedValues)
-                        setCheckedKeys(checkedValues)
-                    }}/>
-            </Space>
-            <Divider type="vertical"/>
-            <Space direction="vertical">
-                <Typography.Title>Projects</Typography.Title>
-                <UploadZone/>
-                <ProjectsTable data={searchData}/>
-            </Space>
-        </Space>
+        <Row justify="space-evenly" gutter={[16, 24]}>
+            <Col>
+                <Space direction="vertical">
+                    <Typography.Title>Class tree</Typography.Title>
+                    <ClassificationTree
+                        onClassCheck={(checkedValues: React.SetStateAction<React.Key[] | undefined | any>) => {
+                            mutation.mutate(checkedValues)
+                            setCheckedKeys(checkedValues)
+                        }}/>
+                </Space>
+            </Col>
+            <Col>
+                <Space direction="vertical">
+                    <Typography.Title>Projects</Typography.Title>
+                    <UploadZone/>
+                    <ProjectsTable data={searchData} isLoading={mutation.isLoading}/>
+                </Space>
+            </Col>
+        </Row>
     )
 }
