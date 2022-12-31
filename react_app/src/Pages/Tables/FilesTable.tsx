@@ -3,9 +3,9 @@ import {Link} from "react-router-dom";
 import React from "react";
 
 export function FilesTable(props: { data: { data: readonly any[] | undefined; } }) {
-    return <Table dataSource={props.data.data} pagination={{hideOnSinglePage: true, defaultPageSize:10}} >
+    return <Table dataSource={props.data.data} pagination={{hideOnSinglePage: true, defaultPageSize: 10}}>
         <Table.Column
-            title="Name"
+            title="File"
             dataIndex="name"
             key="name"
             render={(value, record) => {
@@ -17,6 +17,7 @@ export function FilesTable(props: { data: { data: readonly any[] | undefined; } 
             title="Owner"
             dataIndex="owner"
             key="owner"
+            responsive={['xxl', 'xl', 'lg', 'md', 'sm']}
             render={(value) => {
                 return <Link to={`/${value}`}>{value}</Link>
             }}
@@ -25,6 +26,7 @@ export function FilesTable(props: { data: { data: readonly any[] | undefined; } 
             title="Parent project"
             dataIndex="parent_project"
             key="parent_project"
+            responsive={['xxl', 'xl', 'lg', 'md']}
             render={(value, record) => {
                 // @ts-ignore
                 return <Link to={`/${record['owner']}/${record['path']}`}>{value}</Link>
@@ -34,6 +36,7 @@ export function FilesTable(props: { data: { data: readonly any[] | undefined; } 
         <Table.Column
             title="Path"
             key="path"
+            responsive={['xxl', 'xl', 'lg']}
             dataIndex="path"
         />
     </Table>

@@ -1,4 +1,4 @@
-import {Button, Form, message, Modal, Select, Space, Table, Tooltip, Typography} from "antd";
+import {Button, Col, Form, message, Modal, Row, Select, Table, Tooltip, Typography} from "antd";
 import React, {useState} from "react";
 import get from "axios";
 import {Link} from "react-router-dom";
@@ -52,7 +52,7 @@ export function UsersTable({data}) {
             dataIndex="role"
             render={(value, record) => {
                 return (
-                    <Space>
+                    <Row justify="space-evenly" gutter={[8, 8]}>
                         <Modal title="Edit user role" open={isModalOpen} onOk={handleOk}
                                onCancel={handleCancel}>
                             <Form
@@ -78,17 +78,22 @@ export function UsersTable({data}) {
                                 </Form.Item>
                             </Form>
                         </Modal>
-                        <Typography.Text>{value}</Typography.Text>
-                        <Tooltip title="Edit user role" placement="right">
-                            <Button type="primary" onClick={event => {
-                                showModal()
-                                // @ts-ignore
-                                setEditRoleUser(record['name'])
-                            }}>
-                                <EditOutlined/>
-                            </Button>
-                        </Tooltip>
-                    </Space>)
+                        <Col>
+                            <Typography.Text>{value}</Typography.Text>
+                        </Col>
+                        <Col>
+                            <Tooltip title="Edit user role" placement="right">
+                                <Button type="primary" onClick={event => {
+                                    showModal()
+                                    // @ts-ignore
+                                    setEditRoleUser(record['name'])
+                                }}>
+                                    <EditOutlined/>
+                                </Button>
+                            </Tooltip>
+                        </Col>
+                    </Row>
+                )
             }
             }
         />
