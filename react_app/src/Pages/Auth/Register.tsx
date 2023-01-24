@@ -22,7 +22,16 @@ export function Register() {
             values['password']
         )
         console.log(response.status)
-        message.info(await response.json(), 5);
+        const duration = 5;
+        if (response.status === 200) {
+            message.info(await response.json(), duration);
+            // after 5 seconds, redirect to login page
+            setTimeout(() => {
+                window.location.href = "/login";
+            }, duration * 1000)
+        } else {
+            message.error(await response.json(), duration)
+        }
     }
 
     return (

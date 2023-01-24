@@ -157,14 +157,14 @@ async def create_directory(user_page: str, project_path: str, request: Request, 
 async def register_page(user: str = '', password: str = ''):
     # todo sql injection protection
     if database_interactions.is_user_exist(user):
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=400, content="user already exists")
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=400, content="User already exists!")
     success = database_interactions.register_new_user(user, password)
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500,
-                            content="Internal error. falied to register new user")
+                            content="Internal server error. falied to register new user :(")
     # fixme create user's directory
     file_interactions.create_user_directory(user)
-    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="successful registration")
+    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Successful registration! Redirection to login page in 5 seconds...")
 
 
 @app.get("/login")
