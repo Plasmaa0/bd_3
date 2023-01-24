@@ -137,11 +137,11 @@ export function SearchForm() {
                     rules={[{required: true, message: "Required"}]}>
                     <TreeSelect
                         showSearch
-                        placeholder="Please select"
+                        placeholder="Select class name(s)"
                         allowClear
                         multiple
                         treeCheckable={true}
-                        showCheckedStrategy={"SHOW_PARENT"}
+                        // showCheckedStrategy={"SHOW_PARENT"}
                         treeData={
                             // @ts-ignore
                             classTreeData.data

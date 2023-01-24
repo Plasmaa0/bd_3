@@ -263,7 +263,7 @@ async def search(request: Request, search_type: str, user: str, token: str = '')
         print(owner, project, tags, class_names)
         if user != owner and searcher_role != 'admin':
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content='this search not allowed by not admin')
-        succ, result = database_interactions.find_projects(owner, project, tags, class_names, limit)
+        succ, result = database_interactions.find_projects(owner, project, tags, class_names, limit, True)
         if succ:
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=result)
         else:

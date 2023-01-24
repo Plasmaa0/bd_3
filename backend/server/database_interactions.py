@@ -377,13 +377,24 @@ def update_tags(user, project_path, tags):
         return True
 
 
-def find_projects(owner: str, project: str, tags: str, class_names: List[str], limit: int):
+def find_projects(owner: str, project: str, tags: str, class_names: List[str], limit: int, only_top_level):
+    """
+    :param owner: owner of project
+    :param project: name of project
+    :param tags: tags of project
+    :param class_names: list of class names
+    :param limit: limit of projects
+    :param only_top_level: if True, then only top level projects will be returned (top level project is a project without parent project). if project is nested, then it will not be returned.
+    """
     try:
         class_names_filter = ' OR '.join([f"class = '{class_name}'" for class_name in class_names])
+        null_filter = ""
+        if only_top_level:
+            null_filter = "AND parent_project IS NULL"
         query = f"SELECT DISTINCT p.owner, name, tags, p.path_to, class FROM projects p " \
                 f"JOIN project_classes pc on p.owner = pc.owner and p.path_to = pc.path_to " \
                 f"WHERE p.owner ILIKE '{owner}' AND name ILIKE '{project}' " \
-                f"AND tags ILIKE '{tags}' AND ({class_names_filter}) LIMIT {limit};"
+                f"AND tags ILIKE '{tags}' AND ({class_names_filter}) {null_filter} LIMIT {limit};"
         err, res = simple_query(query)
         if err:
             print(err, res)
@@ -565,7 +576,7 @@ def link_project(user_page, project_path, class_names):
 
 
 def find_projects_by_class(search_user, class_filter):
-    return find_projects(search_user, '%', '%', class_filter, 100)
+    return find_projects(search_user, '%', '%', class_filter, 100, True)
 
 
 # for testing purposes
