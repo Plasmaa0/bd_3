@@ -173,7 +173,10 @@ async def login(user: str = '', password: str = ''):
     if not database_interactions.is_user_exist(user):
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content="user not exist")
     if database_interactions.is_password_correct(user, password):
-        if (not database_interactions.user_have_token(user)) or database_interactions.user_token_expired(user):
+        user_have_token = database_interactions.user_have_token(user)
+        user_token_expired = database_interactions.user_token_expired(user)
+        need_to_generate_token = (not user_have_token) or user_token_expired
+        if need_to_generate_token:
             # generate new token
             # save new token (or replace old expired one)
             # return new token

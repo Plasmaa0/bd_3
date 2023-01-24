@@ -86,7 +86,8 @@ CREATE TABLE IF NOT EXISTS tokens
 (
     username user_data_text REFERENCES users (name) ON DELETE CASCADE,
     token    uuid,
-    expire   timestamp
+    expire   timestamp,
+    UNIQUE (username)
 );
 
 INSERT INTO classification(name)

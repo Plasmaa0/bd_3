@@ -12,7 +12,8 @@ START_LOCAL = False
 
 POSTGRES_CONNECTION_SETTINGS = {}
 
-TOKEN_EXPIRE_DELTA_SECONDS = 3600
+# 3 hours in seconds
+TOKEN_EXPIRE_DELTA_SECONDS = 10800
 
 
 def load_settings(path: str):
@@ -110,7 +111,7 @@ def check_auth(user: str, token: str = '') -> Tuple[bool, str]:
         return False, "no token given"
     elif user_token_expired(user):
         print("token expired")  # fixme error here
-        return False, "token expired"
+        return False, "Token expired, please login again"
     elif not user_valid_token(user, token):
         print("invalid token")
         return False, "invalid token"
@@ -182,7 +183,10 @@ def generate_token(user: str) -> Tuple[bool, dict]:
     print(token)
     expire = datetime.now() + timedelta(seconds=TOKEN_EXPIRE_DELTA_SECONDS)
     err, res = simple_query(
-        f"INSERT INTO public.tokens(username, token, expire) VALUES('{user}', '{token}', '{expire}');")
+        f"INSERT INTO public.tokens(username, token, expire) VALUES('{user}', '{token}', '{expire}') "
+        f"ON CONFLICT (username) "
+        f"DO UPDATE SET "
+        f"token='{token}', expire='{expire}';")
     if err:
         # fixme
         return False, {}
