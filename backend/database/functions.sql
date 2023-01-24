@@ -51,25 +51,25 @@ WHERE parent_name = class_name
 ORDER BY name;
 $$;
 
--- SELECT class
--- FROM project_classes
--- WHERE owner = 'andrey123'
---   AND path_to = '123';
+CREATE EXTENSION fuzzystrmatch;
 
--- WITH RECURSIVE children AS (SELECT name, parent_name
---                             FROM classification
---                             WHERE name = 'root'
---                             UNION
---                             SELECT tp.name, tp.parent_name
---                             FROM classification tp
---                                      JOIN children c ON tp.parent_name = c.name)
--- SELECT name
--- FROM children
--- WHERE parent_name IS NOT NULL;
+-- create function that compares two strings.
+-- Returns True if levenstein distance is less than 3, False otherwise
+DROP FUNCTION IF EXISTS levenshtein_compare;
+CREATE OR REPLACE FUNCTION levenshtein_compare(str1 text, str2 text)
+    RETURNS BOOLEAN
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    IF levenshtein(str1, str2) < 3
+    THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+END;
+$$;
 
--- SELECT DISTINCT p.owner, name, tags, p.path_to, class
--- FROM projects p
---          JOIN project_classes pc on p.owner = pc.owner and p.path_to = pc.path_to
--- WHERE class = 'class-2'
---    OR class = 'class-3'
--- LIMIT 10;
+
+

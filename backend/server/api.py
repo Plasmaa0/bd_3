@@ -164,7 +164,8 @@ async def register_page(user: str = '', password: str = ''):
                             content="Internal server error. falied to register new user :(")
     # fixme create user's directory
     file_interactions.create_user_directory(user)
-    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Successful registration! Redirection to login page in 5 seconds...")
+    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200,
+                        content="Successful registration! Redirection to login page in 5 seconds...")
 
 
 @app.get("/login")

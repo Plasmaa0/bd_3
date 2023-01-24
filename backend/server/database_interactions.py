@@ -99,6 +99,7 @@ def user_valid_token(user: str, token: str) -> bool:
     else:
         return res[1][0][0]
 
+
 def check_auth(user: str, token: str = '') -> Tuple[bool, str]:
     if len(user) == 0:
         print("no user given")
@@ -377,6 +378,53 @@ def update_tags(user, project_path, tags):
         return True
 
 
+class ProjectSearchFilters:
+    def __init__(self, owner: str, project: str, tags: str, class_names: List[str], limit: int, only_top_level: bool):
+        self.owner = owner
+        self.project = project
+        self.tags = tags
+        self.class_names = class_names
+        self.limit = limit
+        self.only_top_level = only_top_level
+
+    def owner_filter(self):
+        if '%' in self.owner:
+            return f"p.owner ILIKE '{self.owner}'"
+        else:
+            return f"levenshtein_compare(p.owner, '{self.owner}')"
+
+    def project_filter(self):
+        if '%' in self.project:
+            return f"p.name ILIKE '{self.project}'"
+        else:
+            return f"levenshtein_compare(p.name, '{self.project}')"
+
+    def tags_filter(self):
+        if '%' in self.tags:
+            return f"p.tags ILIKE '{self.tags}'"
+        else:
+            return f"levenshtein_compare(p.tags, '{self.tags}')"
+
+    def class_names_filter(self):
+        return ' OR '.join([f"class = '{class_name}'" for class_name in self.class_names])
+
+    def null_filter(self):
+        if self.only_top_level:
+            return "AND parent_project IS NULL"
+        return ""
+
+    def limit_filter(self):
+        return f"LIMIT {self.limit}"
+
+    def __str__(self):
+        return f"{self.owner_filter()} " \
+               f"AND {self.project_filter()} " \
+               f"AND {self.tags_filter()} " \
+               f"AND ({self.class_names_filter()}) " \
+               f"{self.null_filter()} " \
+               f"{self.limit_filter()}"
+
+
 def find_projects(owner: str, project: str, tags: str, class_names: List[str], limit: int, only_top_level):
     """
     :param owner: owner of project
@@ -387,14 +435,10 @@ def find_projects(owner: str, project: str, tags: str, class_names: List[str], l
     :param only_top_level: if True, then only top level projects will be returned (top level project is a project without parent project). if project is nested, then it will not be returned.
     """
     try:
-        class_names_filter = ' OR '.join([f"class = '{class_name}'" for class_name in class_names])
-        null_filter = ""
-        if only_top_level:
-            null_filter = "AND parent_project IS NULL"
+        filters = ProjectSearchFilters(owner, project, tags, class_names, limit, only_top_level)
         query = f"SELECT DISTINCT p.owner, name, tags, p.path_to, class FROM projects p " \
                 f"JOIN project_classes pc on p.owner = pc.owner and p.path_to = pc.path_to " \
-                f"WHERE p.owner ILIKE '{owner}' AND name ILIKE '{project}' " \
-                f"AND tags ILIKE '{tags}' AND ({class_names_filter}) {null_filter} LIMIT {limit};"
+                f"WHERE {filters}"
         err, res = simple_query(query)
         if err:
             print(err, res)
@@ -414,14 +458,23 @@ def find_projects(owner: str, project: str, tags: str, class_names: List[str], l
                 i += 1
             pprint.pprint(result)
             return True, result
-    except:
+    except Exception as e:
+        print(e)
         return False, {}
 
 
 def find_users(user_to_find: str, role: str, limit: int):
     try:
+        def username_filter():
+            if '%' in user_to_find:
+                return f"name ILIKE '{user_to_find}'"
+            else:
+                return f"levenshtein_compare(name, '{user_to_find}')"
+
         err, res = simple_query(
-            f"SELECT name, role FROM users WHERE name ILIKE '{user_to_find}' AND role='{role}' LIMIT {limit};")
+            f"SELECT name, role FROM users WHERE "
+            f"{username_filter()}"
+            f"AND role='{role}' LIMIT {limit};")
         if err:
             print(err, res)
             return False, {}
@@ -443,11 +496,31 @@ def find_users(user_to_find: str, role: str, limit: int):
 
 def find_file(owner: str, parent_project: str, filename: str, path: str, limit: int):
     try:
+        def owner_filter():
+            if '%' in owner:
+                return f"owner ILIKE '{owner}'"
+            else:
+                return f"levenshtein_compare(owner, '{owner}')"
+
+        def parent_project_filter():
+            if '%' in parent_project:
+                return f"parent_project ILIKE '{parent_project}'"
+            else:
+                return f"levenshtein_compare(parent_project, '{parent_project}')"
+
+        def filename_filter():
+            if '%' in filename:
+                return f"name ILIKE '{filename}'"
+            else:
+                return f"levenshtein_compare(name, '{filename}')"
+
         err, res = simple_query(
             f"SELECT owner, parent_project, name, path FROM files WHERE "
-            f"owner ILIKE '{owner}' AND "
-            f"parent_project ILIKE '{parent_project}' AND "
-            f"name ILIKE '{filename}' AND path ILIKE '{path}' LIMIT {limit};")
+            f"{owner_filter()} AND "
+            f"{parent_project_filter()} AND "
+            f"{filename_filter()} AND "
+            f"path ILIKE '{path}' "
+            f"LIMIT {limit};")
         if err:
             print(err, res)
             return False, {}
@@ -488,34 +561,6 @@ def edit_user_role(user: str, new_role: str):
 
 
 cached_class_tree = {}
-
-dummy_class_tree = [
-    {
-        'title': 'Cat1',
-        'value': 'cat1',
-        'key': 'cat1',
-        'children': [
-            {
-                'title': 'cat1-1',
-                'value': 'cat1-1',
-                'key': 'cat1-1',
-                'children': []
-            },
-            {
-                'title': 'Cat1-2',
-                'value': 'cat1-2',
-                'key': 'cat1-2',
-                'children': []
-            }
-        ]
-    },
-    {
-        'title': 'cat2',
-        'value': 'cat2',
-        'key': 'cat2',
-        'children': []
-    },
-]
 
 
 def update_class_tree():
