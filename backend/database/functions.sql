@@ -51,7 +51,7 @@ WHERE parent_name = class_name
 ORDER BY name;
 $$;
 
-CREATE EXTENSION fuzzystrmatch;
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
 
 -- create function that compares two strings.
 -- Returns True if levenstein distance is less than 3, False otherwise
