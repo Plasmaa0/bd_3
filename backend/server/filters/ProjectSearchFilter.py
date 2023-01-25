@@ -12,24 +12,24 @@ class ProjectSearchFilter:
 
     def owner_filter(self):
         if '%' in self.owner:
-            return f"p.owner ILIKE '{self.owner}'"
+            return f"p.owner ILIKE %s ESCAPE ''"
         else:
-            return f"levenshtein_compare(p.owner, '{self.owner}')"
+            return f"levenshtein_compare(p.owner, %s)"
 
     def project_filter(self):
         if '%' in self.project:
-            return f"p.name ILIKE '{self.project}'"
+            return f"p.name ILIKE %s ESCAPE ''"
         else:
-            return f"levenshtein_compare(p.name, '{self.project}')"
+            return f"levenshtein_compare(p.name, %s)"
 
     def tags_filter(self):
         if '%' in self.tags:
-            return f"p.tags ILIKE '{self.tags}'"
+            return f"p.tags ILIKE %s ESCAPE ''"
         else:
-            return f"levenshtein_compare(p.tags, '{self.tags}')"
+            return f"levenshtein_compare(p.tags, %s)"
 
     def class_names_filter(self):
-        return ' OR '.join([f"class = '{class_name}'" for class_name in self.class_names])
+        return ' OR '.join([f"class = %s" for class_name in self.class_names])
 
     def null_filter(self):
         if self.only_top_level:
@@ -37,7 +37,11 @@ class ProjectSearchFilter:
         return ""
 
     def limit_filter(self):
-        return f"LIMIT {self.limit}"
+        return f"LIMIT %s"
+
+    def args(self):
+        print(self.owner, self.project, self.tags, *self.class_names, self.limit)
+        return self.owner, self.project, self.tags, *self.class_names, self.limit
 
     def __str__(self):
         return f"{self.owner_filter()} " \

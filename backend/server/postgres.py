@@ -40,7 +40,7 @@ class PostgresBackend:
                 raise Exception('failed to connect to database')
         return self.connection.cursor()
 
-    def query(self, text):
+    def query(self, text, *args):
         if len(text) == 0:
             print('empty query, not executing, returning None')
             return None, None
@@ -48,15 +48,20 @@ class PostgresBackend:
         result_ = None
         cursor = self.cursor
         try:
-            cursor.execute(text)  # FIXME VERY DANGEROUS. VULNERABLE TO SQL INJECTION!!!!!!!!!!!!
-            if 'SELECT' in text.upper():
-                column_names = list(
-                    map(lambda x: x[0], cursor.description))
-                result_ = [column_names, [list(i)
-                                          for i in cursor.fetchall()]]
-            error_ = False
+            cursor.execute(text, tuple(args))  # FIXME VERY DANGEROUS. VULNERABLE TO SQL INJECTION!!!!!!!!!!!!
+            try:
+                if 'SELECT' in text.upper():
+                    column_names = list(
+                        map(lambda x: x[0], cursor.description))
+                    result_ = [column_names, [list(i)
+                                              for i in cursor.fetchall()]]
+                error_ = False
+            except Exception as e:
+                print('caught exception during query result fetching', e)
+                error_ = e
+                result_ = None
         except Exception as e:
-            # print('caught exception during query execution', e)
+            print('caught exception during query execution', e)
             error_ = e
             result_ = None
         else:

@@ -14,7 +14,7 @@ from settings import DATA_DIR
 from database_interactions import Database
 
 db = Database()
-db.init_db()
+# db.init_db()
 
 app = FastAPI()
 

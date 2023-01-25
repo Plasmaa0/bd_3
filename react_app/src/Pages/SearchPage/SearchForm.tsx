@@ -141,7 +141,7 @@ export function SearchForm() {
                         allowClear
                         multiple
                         treeCheckable={true}
-                        // showCheckedStrategy={"SHOW_PARENT"}
+                        showCheckedStrategy={"SHOW_PARENT"}
                         treeData={
                             // @ts-ignore
                             classTreeData.data

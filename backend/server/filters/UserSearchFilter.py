@@ -6,15 +6,18 @@ class UserSearchFilter:
 
     def username_filter(self):
         if '%' in self.user_to_find:
-            return f"name ILIKE '{self.user_to_find}'"
+            return f"name ILIKE %s ESCAPE ''"
         else:
-            return f"levenshtein_compare(name, '{self.user_to_find}')"
+            return f"levenshtein_compare(name, %s)"
 
     def role_filter(self):
-        return f"role='{self.role}'"
+        return f"role=%s"
 
     def limit_filter(self):
-        return f"LIMIT {self.limit}"
+        return f"LIMIT %s"
+
+    def args(self):
+        return self.user_to_find, self.role, self.limit
 
     def __str__(self):
         return f"{self.username_filter()}" \

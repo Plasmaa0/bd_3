@@ -24,7 +24,7 @@ class Database:
         self.update_class_tree()  # fixme maybe not needed
 
     def user_token_expired(self, user: str) -> bool:
-        err, res = self.backend.query(f"SELECT user_token_expired('{user}');")
+        err, res = self.backend.query(f"SELECT user_token_expired(%s);", user)
         if err:
             # fixme
             pass
@@ -32,7 +32,7 @@ class Database:
             return res[1][0][0]
 
     def user_valid_token(self, user: str, token: str) -> bool:
-        err, res = self.backend.query(f"SELECT user_valid_token('{user}', '{token}');")
+        err, res = self.backend.query(f"SELECT user_valid_token(%s, %s);", user, token)
         if err:
             # fixme
             return False
@@ -40,7 +40,7 @@ class Database:
             return res[1][0][0]
 
     def is_user_exist(self, user: str):
-        err, res = self.backend.query(f"SELECT COUNT(*)=1 AS RESULT FROM users WHERE name = '{user}';")
+        err, res = self.backend.query(f"SELECT COUNT(*)=1 AS RESULT FROM users WHERE name = %s;", user)
         if err:
             # fixme
             pass
@@ -48,7 +48,7 @@ class Database:
             return res[1][0][0]
 
     def user_have_token(self, user: str) -> bool:
-        err, res = self.backend.query(f"SELECT COUNT(*)=1 AS RESULT FROM tokens WHERE username = '{user}';")
+        err, res = self.backend.query(f"SELECT COUNT(*)=1 AS RESULT FROM tokens WHERE username = %s;", user)
         if err:
             # fixme
             pass
@@ -89,7 +89,7 @@ class Database:
 
     def is_password_correct(self, user: str, password: str) -> bool:
         err, res = self.backend.query(
-            f"SELECT COUNT(*)=1 AS is_valid FROM users WHERE name='{user}' AND password='{password}';")
+            f"SELECT COUNT(*)=1 AS is_valid FROM users WHERE name=%s AND password=%s;", user, password)
         if err:
             # fixme
             pass
@@ -102,7 +102,7 @@ class Database:
             role = 'admin'
             self.first_user_registered = True
         err, res = self.backend.query(
-            f"INSERT INTO users (name, password, role) VALUES ('{user}', '{password}', '{role}');")
+            f"INSERT INTO users (name, password, role) VALUES (%s, %s, %s);", user, password, role)
         print(err, res)
         if err:
             # fixme
@@ -115,10 +115,10 @@ class Database:
         print(token)
         expire = datetime.now() + timedelta(seconds=TOKEN_EXPIRE_DELTA_SECONDS)
         err, res = self.backend.query(
-            f"INSERT INTO public.tokens(username, token, expire) VALUES('{user}', '{token}', '{expire}') "
+            f"INSERT INTO public.tokens(username, token, expire) VALUES(%s, %s, %s) "
             f"ON CONFLICT (username) "
             f"DO UPDATE SET "
-            f"token='{token}', expire='{expire}';")
+            f"token=%s, expire=%s;", user, str(token), expire, str(token), expire)
         if err:
             # fixme
             return False, {}
@@ -126,7 +126,7 @@ class Database:
             return self.get_token(user)
 
     def get_token(self, user: str) -> Tuple[bool, dict]:
-        err, res = self.backend.query(f"SELECT token, expire FROM tokens WHERE username = '{user}';")
+        err, res = self.backend.query(f"SELECT token, expire FROM tokens WHERE username = %s;", user)
         if err:
             # fixme
             return False, {}
@@ -139,7 +139,7 @@ class Database:
 
     def get_project_classes(self, user: str, project_path: str) -> List[str]:
         err, res = self.backend.query(
-            f"SELECT class FROM project_classes WHERE owner='{user}' AND path_to='{project_path}';")
+            f"SELECT class FROM project_classes WHERE owner=%s AND path_to=%s;", user, project_path)
         if err:
             return ['']
         result = []
@@ -149,7 +149,7 @@ class Database:
 
     def get_user_page(self, user: str):
         err, res = self.backend.query(
-            f"SELECT name, tags, path_to FROM projects WHERE owner='{user}' AND parent_project IS NULL;")
+            f"SELECT name, tags, path_to FROM projects WHERE owner=%s AND parent_project IS NULL;", user)
         if err:
             # fixme
             return False, {}
@@ -174,7 +174,7 @@ class Database:
     def get_project_page(self, user: str, project_path: str):
         # информация о проекте
         err, res = self.backend.query(
-            f"SELECT parent_project, name, tags FROM projects WHERE path_to = '{project_path}' AND owner='{user}';")
+            f"SELECT parent_project, name, tags FROM projects WHERE path_to=%s AND owner=%s;", project_path, user)
         if err or len(res[1]) == 0:
             # fixme
             print('early exit')
@@ -199,7 +199,8 @@ class Database:
         }
         # информация о файлах в проекте
         err, res = self.backend.query(
-            f"SELECT name, split_part(name, '.', 2) AS extension FROM files WHERE owner = '{user}' AND path = '{project_path}';")
+            f"SELECT name, split_part(name, '.', 2) AS extension FROM files WHERE owner = %s AND path = %s;", user,
+            project_path)
         # print(res)
         if err:
             # fixme
@@ -215,7 +216,12 @@ class Database:
 
         # информация о вложенных проектах
         err, res = self.backend.query(
-            f"SELECT p1.name, p1.tags, p1.path_to FROM projects p1 JOIN projects p2 ON p2.name=p1.parent_project AND p2.owner=p1.owner WHERE p2.path_to='{project_path}' AND p2.owner='{user}';")
+            f"SELECT p1.name, p1.tags, p1.path_to FROM projects p1 JOIN projects p2 ON p2.name=p1.parent_project AND p2.owner=p1.owner WHERE p2.path_to=%s AND p2.owner=%s;",
+            project_path, user)
+
+        # TODO github copilot suggested this. figure out if it is better
+        # err, res = self.backend.query(
+        #     f"SELECT name, tags, path_to FROM projects WHERE parent_project=%s AND owner=%s;", project_path, user)
         if err:
             # fixme
             return {}
@@ -234,15 +240,15 @@ class Database:
     def register_new_file(self, user: str, project_path: str, filename: str):
         parent = project_path.split('/')[-1]
         err, res = self.backend.query(
-            f"INSERT INTO files(id, owner, parent_project, name, path) VALUES(DEFAULT, '{user}', '{parent}', '{filename}', '{project_path}');")
+            f"INSERT INTO files(id, owner, parent_project, name, path) VALUES(DEFAULT, %s, %s, %s, %s);", user, parent,
+            filename, project_path)
         print(err, res)
 
     def remove_file(self, user: str, project_path: str) -> Tuple[bool, str]:
         arr = project_path.split('/')
         name = arr.pop()
-        # print(f"DELETE FROM files WHERE owner='{user}' AND name={name} AND path='{'/'.join(arr)}';")
         err, res = self.backend.query(
-            f"DELETE FROM files WHERE owner='{user}' AND name='{name}' AND path='{'/'.join(arr)}';")
+            f"DELETE FROM files WHERE owner=%s AND name=%s AND path=%s;", user, name, '/'.join(arr))
         print(err, res)
         if err:
             return False, err
@@ -255,11 +261,12 @@ class Database:
         if '/' in project_path:
             arr = project_path.split('/')
             name = arr[-1]
-            query = f"DELETE FROM projects WHERE owner = '{user}' AND name = '{name}' AND path_to = '{project_path}';"
+            query = "DELETE FROM projects WHERE owner = %s AND name = %s AND path_to = %s;"
+            err, res = self.backend.query(query, user, name, project_path)
         else:
-            query = f"DELETE FROM projects WHERE owner = '{user}' AND name = '{project_path}' AND path_to = '{project_path}';"
+            query = "DELETE FROM projects WHERE owner = %s AND name = %s AND path_to = %s;"
+            err, res = self.backend.query(query, user, project_path, project_path)
         print(query)
-        err, res = self.backend.query(query)
         if err:
             return False, err
         else:
@@ -274,7 +281,8 @@ class Database:
             parent = arr[-2]
             name = arr[-1]
             err, res = self.backend.query(
-                f"INSERT INTO projects (owner, parent_project, name, tags, path_to) VALUES ('{user}', '{parent}', '{name}', '{tags}', '{'/'.join(arr)}');")
+                f"INSERT INTO projects (owner, parent_project, name, tags, path_to) VALUES (%s, %s, %s, %s, %s);", user,
+                parent, name, tags, '/'.join(arr))
             # user page
             if err:
                 print(err)
@@ -284,7 +292,8 @@ class Database:
             pass
         else:
             err, res = self.backend.query(
-                f"INSERT INTO projects (owner, parent_project, name, tags, path_to) VALUES ('{user}', null, '{project_path}', '{tags}', '{project_path}');")
+                f"INSERT INTO projects (owner, parent_project, name, tags, path_to) VALUES (%s, null, %s, %s, %s);",
+                user, project_path, tags, project_path)
             # user page
             if err:
                 print(err)
@@ -294,7 +303,7 @@ class Database:
 
     def update_tags(self, user, project_path, tags):
         err, res = self.backend.query(
-            f"UPDATE projects SET tags = '{tags}' WHERE owner = '{user}' AND path_to = '{project_path}';")
+            f"UPDATE projects SET tags = %s WHERE owner = %s AND path_to = %s;", tags, user, project_path)
         if err:
             print(err, res)
             return False
@@ -315,7 +324,8 @@ class Database:
             query = f"SELECT DISTINCT p.owner, name, tags, p.path_to, class FROM projects p " \
                     f"JOIN project_classes pc on p.owner = pc.owner and p.path_to = pc.path_to " \
                     f"WHERE {filters}"
-            err, res = self.backend.query(query)
+            print(query)
+            err, res = self.backend.query(query, *filters.args())
             if err:
                 print(err, res)
                 return False, {}
@@ -341,7 +351,7 @@ class Database:
     def find_users(self, user_to_find: str, role: str, limit: int):
         try:
             filters = UserSearchFilter(user_to_find, role, limit)
-            err, res = self.backend.query(f"SELECT name, role FROM users WHERE {filters}")
+            err, res = self.backend.query(f"SELECT name, role FROM users WHERE {filters}", *filters.args())
             if err:
                 print(err, res)
                 return False, {}
@@ -364,7 +374,8 @@ class Database:
     def find_file(self, owner: str, parent_project: str, filename: str, path: str, limit: int):
         try:
             filters = FileSearchFilter(owner, parent_project, filename, path, limit)
-            err, res = self.backend.query(f"SELECT owner, parent_project, name, path FROM files WHERE {filters}")
+            err, res = self.backend.query(f"SELECT owner, parent_project, name, path FROM files WHERE {filters}",
+                                          *filters.args())
             if err:
                 print(err, res)
                 return False, {}
@@ -387,7 +398,7 @@ class Database:
             return False, {}
 
     def get_user_role(self, user: str):
-        err, res = self.backend.query(f"SELECT role FROM users WHERE name='{user}';")
+        err, res = self.backend.query(f"SELECT role FROM users WHERE name=%s;", user)
         if err:
             print(err, res)
             return 'default'
@@ -395,7 +406,7 @@ class Database:
             return res[1][0][0]
 
     def edit_user_role(self, user: str, new_role: str):
-        err, res = self.backend.query(f"UPDATE users SET role='{new_role}'::user_role WHERE name='{user}';")
+        err, res = self.backend.query(f"UPDATE users SET role=%s WHERE name=%s;", new_role, user)
         if err:
             print(err, res)
             return False
@@ -404,7 +415,7 @@ class Database:
 
     def update_class_tree(self):
         def parse_class(class_name: str, parent_node, depth: int):
-            _err, _res = self.backend.query(f"SELECT * FROM class_children('{class_name}')")
+            _err, _res = self.backend.query("SELECT * FROM class_children(%s)", class_name)
             if _err:
                 print(_err)
                 return False
@@ -447,7 +458,8 @@ class Database:
         print(class_names)
         for class_name in class_names:
             err, res = self.backend.query(
-                f"INSERT INTO project_classes(owner, path_to, class) VALUES ('{user_page}','{project_path}','{class_name}');")
+                f"INSERT INTO project_classes(owner, path_to, class) VALUES (%s, %s, %s);", user_page, project_path,
+                class_name)
             if err:
                 print(err, res)
                 return False
@@ -457,11 +469,11 @@ class Database:
         return self.find_projects(search_user, '%', '%', class_filter, 100, True)
 
     def remove_class(self, class_name: str):
-        err, res = self.backend.query(f"DELETE FROM project_classes WHERE class='{class_name}';")
+        err, res = self.backend.query(f"DELETE FROM project_classes WHERE class=%s;", class_name)
         if err:
             print(err)
             return False, str(err)
-        err, res = self.backend.query(f"DELETE FROM classification WHERE name='{class_name}';")
+        err, res = self.backend.query(f"DELETE FROM classification WHERE name=%s;", class_name)
         if err:
             print(err)
             return False, str(err)
@@ -470,7 +482,7 @@ class Database:
 
     def add_child_class(self, class_name: str, child_name: str):
         err, res = self.backend.query(
-            f"INSERT INTO classification(name, parent_name) VALUES ('{child_name}', '{class_name}');")
+            f"INSERT INTO classification(name, parent_name) VALUES (%s, %s);", child_name, class_name)
         if err:
             print(err)
             if 'already exists' in str(err):
