@@ -18,7 +18,7 @@ async function loginUser(username: string, password: string) {
 // @ts-ignore
 export function Login() {
     const navigate = useNavigate()
-    const [cookies, setCookie] = useCookies(['user', 'token', 'role'])
+    const [cookies, setCookie] = useCookies(['user', 'token', 'role', 'token_expire'])
     const handleSubmit = async (values: any) => {
         if (!canSubmit(values)) {
             console.log("not trying to log")
@@ -36,9 +36,10 @@ export function Login() {
             message.error(await jsonData);
         } else {
             message.success("successful login")
-            setCookie('token', JSON.stringify(token).replaceAll('"',''));
-            setCookie('user', JSON.stringify(values['username']).replaceAll('"',''));
-            setCookie('role', JSON.stringify(await jsonData['role']).replaceAll('"',''));
+            setCookie('token', JSON.stringify(token).replaceAll('"', ''));
+            setCookie('user', JSON.stringify(values['username']).replaceAll('"', ''));
+            setCookie('role', JSON.stringify(await jsonData['role']).replaceAll('"', ''));
+            setCookie('token_expire', JSON.stringify(await jsonData['expire']).replaceAll('"', ''));
             navigate('/')
             window.location.reload();
         }

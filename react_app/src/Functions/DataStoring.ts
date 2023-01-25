@@ -15,6 +15,10 @@ export function GetRole() {
     return cookies.get('role')
 }
 
+export function GetTokenExpire() {
+    return cookies.get('token_expire')
+}
+
 export function logout() {
     message.warning("logout")
     cookies.remove('token')

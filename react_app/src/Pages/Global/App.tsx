@@ -15,7 +15,7 @@ import {ConfigProvider, Layout, theme, Typography} from "antd";
 import {SearchForm} from "../SearchPage/SearchForm";
 import {ClassTreeSearch} from "../ClassTree/ClassTreeSearch";
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
-import {GetToken, GetUser} from "../../Functions/DataStoring";
+import {GetToken, GetTokenExpire, GetUser, logout} from "../../Functions/DataStoring";
 import {isDarkTheme, ThemeSwitcher} from "./ThemeSwitcher";
 
 const {darkAlgorithm, compactAlgorithm, defaultAlgorithm} = theme;
@@ -31,13 +31,23 @@ export function App() {
     })
     const token: string = GetToken();
     const user: string = GetUser();
+    const token_expire: number = GetTokenExpire();
     const [isDarkThemeState, setIsDarkThemeState] = useState(isDarkTheme());
     const [collapsed, setCollapsed] = useState(false);
+    {
+        // console.log(new Date(token_expire*1000))
+        // console.log(new Date())
+        // console.log(new Date(token_expire*1000) < new Date())
+        if (token && new Date(token_expire * 1000) < new Date()) {
+            alert("Your token has expired. Please login again.");
+            logout();
+        }
+    }
     // return (<TestPage/>); //fixme delete this
     if (!token || !user) {
         return (
             <ConfigProvider theme={{algorithm: isDarkTheme() ? darkAlgorithm : defaultAlgorithm}}>
-                <Layout className="box" style={{minHeight:"100vh"}}>
+                <Layout className="box" style={{minHeight: "100vh"}}>
                     <QueryClientProvider client={queryClient}>
                         <BrowserRouter>
                             <Layout.Content className="row content">
@@ -62,7 +72,7 @@ export function App() {
         <ConfigProvider theme={{algorithm: isDarkTheme() ? darkAlgorithm : defaultAlgorithm}}>
             <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
-                    <Layout className="box" style={{minHeight:"100vh"}}>
+                    <Layout className="box" style={{minHeight: "100vh"}}>
                         <Layout.Sider collapsible breakpoint="lg" trigger={null} collapsed={collapsed}
                                       onCollapse={(value) => setCollapsed(value)} className="row header">
                             <ThemeSwitcher isDarkTheme={isDarkTheme()}
