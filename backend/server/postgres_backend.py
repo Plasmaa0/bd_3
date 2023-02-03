@@ -1,4 +1,4 @@
-from settings import PostgresConfig
+from .settings import PostgresConfig
 import psycopg2
 
 

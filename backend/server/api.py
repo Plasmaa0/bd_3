@@ -11,9 +11,10 @@ from starlette.responses import JSONResponse
 import file_interactions
 from settings import DATA_DIR
 
-from database_interactions import Database
-
-db = Database()
+# from database_interactions import Database
+#
+# db = Database()
+from sqlalchemy_db import backend as db
 # db.init_db()
 
 app = FastAPI()

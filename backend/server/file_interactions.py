@@ -1,7 +1,7 @@
 import os
 import shutil
 from typing import Tuple
-from settings import DATA_DIR
+DATA_DIR = os.getenv('DATA_DIR', 'data')
 
 def get_file(user, file_path):
     # fixme prevent loading too big files

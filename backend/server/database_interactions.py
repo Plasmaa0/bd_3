@@ -6,14 +6,12 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Tuple, List
 
-from filters.ProjectSearchFilter import ProjectSearchFilter
-from filters.UserSearchFilter import UserSearchFilter
-from filters.FileSearchFilter import FileSearchFilter
-
-from settings import DATA_DIR, TOKEN_EXPIRE_DELTA_SECONDS
-
-from settings import load_settings
-from postgres import PostgresBackend
+from .filters.FileSearchFilter import FileSearchFilter
+from .filters.ProjectSearchFilter import ProjectSearchFilter
+from .filters.UserSearchFilter import UserSearchFilter
+from .postgres_backend import PostgresBackend
+from .settings import DATA_DIR, TOKEN_EXPIRE_DELTA_SECONDS
+from .settings import load_settings
 
 
 class Database:
@@ -100,10 +98,11 @@ class Database:
         role = 'default'
         if not self.first_user_registered:
             role = 'admin'
+            print("first user registered, role set to admin", user, password)
             self.first_user_registered = True
         err, res = self.backend.query(
             f"INSERT INTO users (name, password, role) VALUES (%s, %s, %s);", user, password, role)
-        print(err, res)
+        # print(err, res)
         if err:
             # fixme
             return False
@@ -281,8 +280,8 @@ class Database:
             parent = arr[-2]
             name = arr[-1]
             err, res = self.backend.query(
-                f"INSERT INTO projects (owner, parent_project, name, tags, path_to) VALUES (%s, %s, %s, %s, %s);", user,
-                parent, name, tags, '/'.join(arr))
+                f"INSERT INTO projects (owner, parent_project, name, tags, path_to) VALUES (%s, %s, %s, %s, %s);",
+                user, parent, name, tags, '/'.join(arr))
             # user page
             if err:
                 print(err)
@@ -492,18 +491,20 @@ class Database:
         self.update_class_tree()  # fixme
         return True, ''
 
-    def init_db(self, force: bool = False):
+    def init_db(self, files: List[str] = [], force: bool = False):
+        # print current working directory
+        print('Current working directory:', os.getcwd())
         # if not force check if initialization is done
         if (not force) and ('WEBSITE_BACKEND_INITIALIZED' in os.environ):
             return
         print('Initializing app...')
         self.reset_data_dir()
-        self.reset_database()
+        self.reset_database(files)
         # set environment variable to indicate that initialization is done
         os.environ['WEBSITE_BACKEND_INITIALIZED'] = '1'
 
-    def reset_database(self):
-        database_files = ['tables.sql', 'functions.sql']
+    def reset_database(self, files: List[str] = []):
+        database_files = ['tables.sql', 'functions.sql'] if len(files) == 0 else files
         print('Resetting database...')
         try:
             # when running locally. database files are in the "../database" directory

@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION user_token_expired("user" user_data_text)
     RETURNS BOOLEAN
     LANGUAGE plpgsql
 AS
-$$
+$f$
 BEGIN
     IF EXISTS(SELECT expire
               FROM tokens t
@@ -15,7 +15,7 @@ BEGIN
         RETURN FALSE;
     END IF;
 END;
-$$;
+$f$;
 
 DROP FUNCTION IF EXISTS user_valid_token;
 CREATE OR REPLACE FUNCTION user_valid_token("user" user_data_text, token_ uuid)
