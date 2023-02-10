@@ -59,7 +59,9 @@ class ProjectClasses(Base):
         PrimaryKeyConstraint('owner', 'path_to'),
         UniqueConstraint('owner', 'path_to', name='projects_classes_unique_owner_path_to'),
         ForeignKeyConstraint(
-            ["owner", "path_to"], ["projects.owner", "projects.path_to"]
+            ["owner", "path_to"],
+            ["projects.owner", "projects.path_to"],
+            ondelete='CASCADE'
         ),
     )
 
@@ -77,13 +79,13 @@ class Files(Base):
     __tablename__ = 'files'
 
     __table_args__ = (
-        PrimaryKeyConstraint('owner', 'path_to', 'name'),
+        PrimaryKeyConstraint('id'),
         UniqueConstraint('owner', 'path_to', 'name', name='files_unique_owner_path_to_name'),
         ForeignKeyConstraint(
-            ["owner", "path_to"], ["projects.owner", "projects.path_to"]
+            ["owner", "path_to"], ["projects.owner", "projects.path_to"], ondelete='CASCADE'
         ),
     )
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, nullable=False)
     owner = Column(String, nullable=False)
     parent_project = Column(String, nullable=False)
     name = Column(String, nullable=False)

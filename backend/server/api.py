@@ -1,5 +1,6 @@
 import json
 import time
+import uuid
 from os import listdir
 from shutil import make_archive
 
@@ -16,6 +17,9 @@ from settings import DATA_DIR
 # db = Database()
 from sqlalchemy_db import backend as db
 # db.init_db()
+db.update_class_tree()
+from database_interactions import Database
+# Database.reset_data_dir()
 
 app = FastAPI()
 
@@ -56,9 +60,9 @@ async def edit_role(user_page: str, new_role: str, user: str = '', token: str = 
         print(msg)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
     if db.edit_user_role(user_page, new_role):
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="role updated")
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="Role updated")
     else:
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed to update role")
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="Failed to update role")
 
 
 @app.post("/uploadfiles/{user_page}/{project_path:path}")
@@ -109,9 +113,9 @@ async def remove_file(user_page: str, project_path: str, user: str = '', token: 
     if not db.is_user_exist(user_page):  # FIXME user directory must be created when user registers
         print("no such user " + user_page)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=("No such user " + user_page))
-    success, msg = file_interactions.remove_file(user_page, project_path)
-    if not success:
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
+    # success, msg = file_interactions.remove_file(user_page, project_path)
+    # if not success:
+    #     return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
     success, msg = db.remove_file(user_page, project_path)
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=f"Error removing {project_path}: {msg}")
@@ -214,6 +218,8 @@ async def get_user_page(user_page: str, user: str = '', token: str = ''):
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
 
     files = db.get_user_page(user_page)
+    files = [file.dict() for file in files]
+    print(files)
     return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=files)
 
 
@@ -225,8 +231,16 @@ async def project_page(user_page: str, project_path: str, user: str = '', token:
         print(msg)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
 
-    files = db.get_project_page(user_page, project_path)
-    print(time.time())
+    files = db.get_project_page(user_page, project_path).dict()
+    print(files)
+    # result = []
+    # for file in files:
+    #     try:
+    #         result.append(file.dict())
+    #     except Exception as e:
+    #         print(e)
+    #         print(file)
+    # print(time.time())
     return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=files)
 
 
@@ -261,11 +275,12 @@ async def search(request: Request, search_type: str, user: str, token: str = '')
         project = query_params['project']
         tags = query_params['tags']
         class_names = json.loads(query_params['classes'])
-        print(owner, project, tags, class_names)
+        top_level_only = query_params['top_level_only']
         if user != owner and searcher_role != 'admin':
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content='this search not allowed by not admin')
-        succ, result = db.find_projects(owner, project, tags, class_names, limit, True)
+        succ, result = db.find_projects(owner, project, tags, class_names, limit, top_level_only)
         if succ:
+            result = [project.dict() for project in result]
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=result)
         else:
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed search by projects")
@@ -278,6 +293,7 @@ async def search(request: Request, search_type: str, user: str, token: str = '')
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content='this search not allowed by not admin')
         succ, result = db.find_users(user_to_find, role, limit)
         if succ:
+            result = [project.dict() for project in result]
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=result)
         else:
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed search by users")
@@ -291,6 +307,7 @@ async def search(request: Request, search_type: str, user: str, token: str = '')
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content='this search not allowed by not admin')
         succ, result = db.find_file(owner, parent_project, filename, path, limit)
         if succ:
+            result = [project.dict() for project in result]
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=result)
         else:
             return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed search by file")
@@ -324,6 +341,7 @@ async def get_projects_by_classification(request: Request, user: str = '', token
     search_user = '%' if role == 'admin' else user
     success, projects = db.find_projects_by_class(search_user, class_filter)
     if success:
+        projects = [project.dict() for project in projects]
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content=projects)
     else:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed search by class")

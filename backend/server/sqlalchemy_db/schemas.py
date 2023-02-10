@@ -50,12 +50,23 @@ class UserPageProject(BaseModel):
     key: int
     classes: list[str]
 
+
 class ProjectItems(BaseModel):
     files: list
     children: list
 
-class ProjectPageProject:
-    parent: []
-    name: []
-    tags: []
+
+class SearchResultProject(BaseModel):
+    name: str
+    owner: str
+    tags: str
+    class_: list[str]
+    path_to: str
+
+
+class ProjectPageProject(BaseModel):
+    parent: str | None
+    name: str
+    tags: str
+    classes: list[str]
     items: ProjectItems

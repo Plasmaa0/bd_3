@@ -38,11 +38,8 @@ export function SearchForm() {
                     },
                 })
             },
-            onSuccess: async data1 => {
-                message.success('Done!');
-            },
-            onError: async error1 => {
-                message.error('error')
+            onError: async () => {
+                message.error('Error fetching search results');
             },
             enabled: false
         }
@@ -63,7 +60,8 @@ export function SearchForm() {
             project: values['project-name'],
             tags: values['tags'],
             classes: JSON.stringify(values['class']),
-            limit: values['limit']
+            limit: values['limit'],
+            top_level_only: values['top_level_only'],
         })
         setNeedToRefetch(true)
     }
@@ -153,6 +151,14 @@ export function SearchForm() {
                            initialValue={10}
                            rules={[{required: true, message: "Required"}]}>
                     <InputNumber/>
+                </Form.Item>
+                <Form.Item
+                    label="Top level only"
+                    name="top_level_only"
+                    initialValue={true}
+                    valuePropName="checked"
+                >
+                    <Input type="checkbox"/>
                 </Form.Item>
                 <Form.Item>
                     <Button type="primary" htmlType="submit">
@@ -298,7 +304,7 @@ export function SearchForm() {
             return (<Typography.Text>{error.response.data}</Typography.Text>);
         }
         if (!dataValid)
-            return <Typography.Text>Press search to update.</Typography.Text>
+            return <Typography.Text>Data is not up to date. Press search to update.</Typography.Text>
         // @ts-ignore
         if (classTreeData.status !== 200)
             return <Typography.Text>SERVER NOT OK</Typography.Text>
@@ -311,7 +317,7 @@ export function SearchForm() {
                 return <FilesTable data={data}/>
             case 'users':
                 // @ts-ignore
-                return <UsersTable data={data} getToken={GetToken} getUser={GetUser}/>
+                return <UsersTable data={data} getToken={GetToken} getUser={GetUser} mutate={refetch}/>
             default:
                 return <Typography.Text>Something went wrong</Typography.Text>
         }

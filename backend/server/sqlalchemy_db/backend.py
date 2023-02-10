@@ -21,7 +21,7 @@ def db_session(func):
 
 
 @db_session
-def init_db(db: Session, sql_files: List[str]):
+def init_db(db: Session, sql_files: List[str] = []):
     from sqlalchemy import text
     from .database import engine
     db.execute(text("DROP TABLE IF EXISTS classification CASCADE;"
@@ -32,16 +32,21 @@ def init_db(db: Session, sql_files: List[str]):
                     "DROP TABLE IF EXISTS users CASCADE;"))
     db.commit()
     models.Base.metadata.create_all(bind=engine)
-    root = models.Classification(name='root')
+    root = models.Classification(name='root', parent_name=None)
     db.add(root)
     db.commit()
     db.refresh(root)
 
-    return
-    for sql_file in sql_files:
-        with open(sql_file, 'r') as f:
-            sql = text(f.read())
-            db.execute(sql)
+    database_files = 'functions.sql'
+    try:
+        with open(database_files) as f:
+            db.execute(text(f.read()))
+    except FileNotFoundError:
+        print(f'File {database_files} not found')
+        print('Trying with prefix ../database/')
+        with open(f'../database/{database_files}') as f:
+            db.execute(text(f.read()))
+    db.commit()
 
 
 @db_session
@@ -87,7 +92,7 @@ def check_auth(db: Session, user: str, token: uuid) -> Tuple[bool, str]:
         return False, "User not found"
     if user_token_expired(user):
         return False, "Token expired, please login again"
-    if not user_valid_token(user, token):
+    if not user_valid_token(user, uuid.UUID(token)):
         return False, "Invalid token, try login again or contact administrator"
     return True, "Auth OK"
 
@@ -147,7 +152,7 @@ def register_new_user(db: Session, user: str, password: str) -> bool:
 def get_token(db: Session, user: str) -> Tuple[bool, dict]:
     db_token = db.query(models.Tokens).filter(models.Tokens.owner == user).first()
     if db_token:
-        return True, {"token": db_token.token, "expire": db_token.expire}
+        return True, {"token": str(db_token.token), "expire": str(db_token.expire)}
     return False, {}
 
 
@@ -184,7 +189,7 @@ def get_user_page(db: Session, user: str) -> List[schemas.UserPageProject]:
     # get all projects for user where user is owner and parent_project is None
     db_projects = db.query(models.Projects) \
         .filter(models.Projects.owner == user) \
-        .filter(models.Projects.parent_project == '').all()  # fixme check if comparison with '' is correct
+        .filter(models.Projects.parent_project == None).all()
     if db_projects:
         projects = []
         # use enumerate to get index of project in list
@@ -197,6 +202,7 @@ def get_user_page(db: Session, user: str) -> List[schemas.UserPageProject]:
             )
             projects.append(project)
         return projects
+    return []
 
 
 @db_session
@@ -209,10 +215,14 @@ def get_project_page(db: Session, user: str, project_path: str) -> schemas.Proje
     if not db_project:
         return schemas.ProjectPageProject()
     result = schemas.ProjectPageProject(
-        parent_project=db_project.parent_project,
+        parent=db_project.parent_project,
         name=db_project.name,
         tags=db_project.tags,
-        classes=get_project_classes(user, project_path)
+        classes=get_project_classes(user, project_path),
+        items=schemas.ProjectItems(
+            files=[],
+            children=[]
+        )
     )
     # get info about files in project
     db_project_files = db.query(models.Files) \
@@ -240,16 +250,17 @@ def get_project_page(db: Session, user: str, project_path: str) -> schemas.Proje
             subproject = {
                 'name': db_project_subproject.name,
                 'key': index,
+                'tags': db_project_subproject.tags,
                 'classes': get_project_classes(user, db_project_subproject.path_to)
             }
             subprojects.append(subproject)
-        result.items.subprojects = subprojects
+        result.items.children = subprojects
     return result
 
 
 @db_session
 def register_new_file(db: Session, user: str, project_path: str, file_name: str):
-    db_file = models.Files(owner=user, path_to=project_path, name=file_name)
+    db_file = models.Files(owner=user, path_to=project_path, name=file_name, parent_project=project_path.split('/')[-1])
     db.add(db_file)
     db.commit()
     db.refresh(db_file)
@@ -257,12 +268,27 @@ def register_new_file(db: Session, user: str, project_path: str, file_name: str)
 
 @db_session
 def remove_file(db: Session, user: str, project_path: str):
-    name = project_path.split('/')[-1] if '/' in project_path else project_path
-    db.query(models.Files).filter(models.Files.owner == user,
-                                  models.Files.path_to == project_path,
-                                  models.Files.name == name).delete()
-    db.commit()
-    db.refresh(db)
+    arr = project_path.split('/')
+    if '/' in project_path:
+        name = arr.pop()
+    else:
+        name = project_path
+    project_path = '/'.join(arr)
+    f = db.query(models.Files).filter(models.Files.owner == user,
+                                      models.Files.path_to == project_path,
+                                      models.Files.name == name)
+    try:
+        if f:
+            f.delete()
+            db.commit()
+        else:
+            print('File not found')
+            return False, 'File not found'
+    except:
+        return False, 'Failed to delete file'
+    else:
+        # db.refresh(db)
+        return True, 'File deleted'
 
 
 @db_session
@@ -274,10 +300,10 @@ def remove_project(db: Session, user: str, project_path: str):
     try:
         db.commit()
     except:
-        return False
+        return False, 'Failed to delete project'
     else:
-        db.refresh(db)
-    return True
+        # db.refresh(db)
+        return True, 'Project deleted'
 
 
 @db_session
@@ -307,8 +333,13 @@ def update_tags(db: Session, user: str, project_path: str, tags: str):
         .filter(models.Projects.owner == user,
                 models.Projects.path_to == project_path).first()
     db_project.tags = tags
-    db.commit()
-    db.refresh(db_project)
+    try:
+        db.commit()
+        db.refresh(db_project)
+    except:
+        return False
+    else:
+        return True
 
 
 @db_session
@@ -318,7 +349,7 @@ def find_projects(db: Session,
                   tags: str,
                   classes: List[str],
                   limit: int,
-                  only_top_level: bool = False):
+                  only_top_level: bool = False) -> Tuple[bool, List[schemas.SearchResultProject]]:
     """
     :param db: database session
     :param owner: owner of project
@@ -328,21 +359,36 @@ def find_projects(db: Session,
     :param limit: limit of projects
     :param only_top_level: if True, then only top level projects will be returned (top level project is a project without parent project). if project is nested, then it will not be returned.
     """
-    query = db.query(models.Projects).filter(models.Projects.owner == owner)
-    # todo use levenstein distance to find similar projects
-    if project_name:
-        query = query.filter(models.Projects.name == project_name)
-    if tags:
-        query = query.filter(models.Projects.tags.ilike(f'%{tags}%'))
-    if only_top_level:
-        query = query.filter(models.Projects.parent_project == '')
-    if classes:
-        # join with ProjectClasses on project path and owner
-        query = query.join(models.ProjectClasses, models.ProjectClasses.path_to == models.Projects.path_to,
-                           models.ProjectClasses.owner == models.Projects.owner)
-        # filter by class name
-        query = query.filter(models.ProjectClasses.class_name.in_(classes))  # todo check if this works
-    return query.limit(limit).all()
+    try:
+        query = db.query(models.Projects)
+        if owner:
+            query = query.filter(models.Projects.owner.ilike(f'{owner}'))
+        # todo use levenstein distance to find similar projects
+        if project_name:
+            query = query.filter(models.Projects.name.ilike(f'{project_name}'))
+        if tags:
+            query = query.filter(models.Projects.tags.ilike(f'{tags}'))
+        if only_top_level:
+            query = query.filter(models.Projects.parent_project == None)
+        if classes:
+            from sqlalchemy import and_
+            # join with ProjectClasses on project path and owner
+            query = query.join(models.ProjectClasses, and_(models.ProjectClasses.path_to == models.Projects.path_to,
+                                                           models.ProjectClasses.owner == models.Projects.owner))
+            # filter by class name
+            query = query.filter(models.ProjectClasses.class_name.in_(classes))  # todo check if this works
+        res = query.limit(limit).all()
+        res = [schemas.SearchResultProject(
+            name=project.name,
+            owner=project.owner,
+            tags=project.tags,
+            class_=get_project_classes(project.owner, project.path_to),
+            path_to=project.path_to
+        ) for project in res]
+        return True, res
+    except Exception as e:
+        print(e)
+        return False, []
 
 
 @db_session
@@ -353,13 +399,22 @@ def find_users(db: Session, user: str, role: str, limit: int):
     :param role: user role
     :param limit: limit of users
     """
-    query = db.query(models.Users)
-    # todo use levenstein distance to find similar users
-    if user:
-        query = query.filter(models.Users.username.ilike(f'%{user}%'))
-    if role:
-        query = query.filter(models.Users.role == role)
-    return query.limit(limit).all()
+    try:
+        query = db.query(models.Users)
+        # todo use levenstein distance to find similar users
+        if user:
+            query = query.filter(models.Users.name.ilike(f'%{user}%'))
+        if role:
+            query = query.filter(models.Users.role == role)
+        res = query.limit(limit).all()
+        res = [schemas.User(
+            name=user.name,
+            role=user.role,
+            password='Not shown'
+        ) for user in res]
+        return True, res
+    except:
+        return False, []
 
 
 @db_session
@@ -375,14 +430,18 @@ def find_file(db: Session, owner: str, parent_project: str,
     :return: list of files
     """
     # use levenstein distance to find similar files
-    query = db.query(models.Files).filter(models.Files.owner == owner)
-    if parent_project:
-        query = query.filter(models.Files.path_to.ilike(f'%{parent_project}%'))
-    if filename:
-        query = query.filter(models.Files.name.ilike(f'%{filename}%'))
-    if path:
-        query = query.filter(models.Files.path.ilike(f'%{path}%'))
-    return query.limit(limit).all()
+    try:
+        query = db.query(models.Files).filter(models.Files.owner.ilike(f'%{owner}%'))
+        if parent_project:
+            query = query.filter(models.Files.parent_project.ilike(f'%{parent_project}%'))
+        if filename:
+            query = query.filter(models.Files.name.ilike(f'%{filename}%'))
+        if path:
+            query = query.filter(models.Files.path_to.ilike(f'%{path}%'))
+        res = query.limit(limit).all()
+        return True, [schemas.Files(**file.__dict__) for file in res]
+    except:
+        return False, []
 
 
 @db_session
@@ -473,7 +532,7 @@ def link_project(db: Session, owner: str, project_path: str, classes: List[str])
 
 
 def find_projects_by_class(search_user: str, class_filter: List[str]):
-    return find_projects(search_user, '', '', '', class_filter, 1000)  # todo check if this works
+    return find_projects(search_user, '%', '%', class_filter, 1000, True) # todo fix limit
 
 
 @db_session
@@ -491,7 +550,7 @@ def remove_class(db: Session, class_name: str):
 @db_session
 def add_child_class(db: Session, parent_class: str, child_class: str):
     db_class = models.Classification(name=child_class,
-                                     parent=parent_class
+                                     parent_name=parent_class
                                      )
     db.add(db_class)
     db.commit()

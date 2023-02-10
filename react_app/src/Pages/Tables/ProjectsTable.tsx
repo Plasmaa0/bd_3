@@ -46,15 +46,15 @@ export function ProjectsTable({data, isLoading}) {
             />
             <Table.Column
                 title="Classes"
-                dataIndex="class"
+                dataIndex="class_"
                 key="class"
                 responsive={['xxl', 'xl', 'lg']}
-                render={(value: string) => {
+                render={(value: string[]) => {
                     return (
                         <Space size="middle" direction="horizontal"
                                style={{display: "flex", justifyContent: "space-between"}}>
                             <Space size="small">
-                                {value?.split(',')?.map((value) => {
+                                {value?.map((value) => {
                                     return (
                                         <Tag key={value} color={UniqueColorFromString(value)}>{value}</Tag>
                                     );

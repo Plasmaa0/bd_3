@@ -35,9 +35,9 @@ export function FilesTable(props: { data: { data: readonly any[] | undefined; } 
         />
         <Table.Column
             title="Path"
+            dataIndex="path_to"
             key="path"
             responsive={['xxl', 'xl', 'lg']}
-            dataIndex="path"
         />
     </Table>
 }

@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS user_token_expired;
-CREATE OR REPLACE FUNCTION user_token_expired("user" user_data_text)
+CREATE OR REPLACE FUNCTION user_token_expired("user" text)
     RETURNS BOOLEAN
     LANGUAGE plpgsql
 AS
@@ -18,7 +18,7 @@ END;
 $f$;
 
 DROP FUNCTION IF EXISTS user_valid_token;
-CREATE OR REPLACE FUNCTION user_valid_token("user" user_data_text, token_ uuid)
+CREATE OR REPLACE FUNCTION user_valid_token("user" text, token_ uuid)
     RETURNS BOOLEAN
     LANGUAGE plpgsql
 AS
@@ -37,10 +37,10 @@ END;
 $$;
 
 DROP FUNCTION IF EXISTS class_children;
-CREATE OR REPLACE FUNCTION class_children(class_name class_name_text)
+CREATE OR REPLACE FUNCTION class_children(class_name text)
     RETURNS TABLE
             (
-                name_ class_name_text
+                name_ text
             )
     LANGUAGE sql
 AS
@@ -71,5 +71,23 @@ BEGIN
 END;
 $$;
 
+
+CREATE OR REPLACE FUNCTION remove_children() RETURNS trigger AS
+$$
+BEGIN
+    DELETE
+    FROM projects
+    WHERE parent_project = OLD.name
+      AND owner = OLD.owner
+      AND (old.path_to || '/' || name) = path_to;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER cascade_deleting
+    AFTER DELETE
+    ON projects
+    FOR EACH ROW
+EXECUTE PROCEDURE remove_children();
 
 

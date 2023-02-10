@@ -8,7 +8,7 @@ import {GetToken, GetUser} from "../../Functions/DataStoring";
 
 
 // @ts-ignore
-export function UsersTable({data}) {
+export function UsersTable({data, mutate}) {
     const [editRoleForm] = Form.useForm();
     const [editRoleUser, setEditRoleUser] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false); // edit tags modal
@@ -24,12 +24,15 @@ export function UsersTable({data}) {
                 token: GetToken(),
                 user: GetUser()
             })
-        await get(path).then((res) => res.data)
-        message.success("Role updated!")
-        // @ts-ignore
-        mutation.mutate(searchParameters)
-        // setNeedToRefetch(true)
-        setIsModalOpen(false);
+        // handle 401, 200, 500 codes
+        await get(path).then((res) => {
+            message.success('Role changed');
+            setIsModalOpen(false);
+            mutate();
+        }).catch((err) => {
+            message.error('Error changing role');
+            setIsModalOpen(false);
+        });
     };
 
     const handleCancel = () => {

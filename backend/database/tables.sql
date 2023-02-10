@@ -40,24 +40,6 @@ CREATE TABLE IF NOT EXISTS projects
     path_to        text,
     UNIQUE (owner, path_to)
 );
-
-CREATE OR REPLACE FUNCTION remove_children() RETURNS trigger AS
-$$
-BEGIN
-    DELETE
-    FROM projects
-    WHERE parent_project = OLD.name
-      AND owner = OLD.owner
-      AND (old.path_to || '/' || name) = path_to;
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER cascade_deleting
-    AFTER DELETE
-    ON projects
-    FOR EACH ROW
-EXECUTE PROCEDURE remove_children();
 -- TODO проверить всякие случаи когда у чего либо одинаковые имена в
 --  разных ситуациях и если что изменить условия в UNIQUE
 --  см UNIQUE NULLS NOT DISTINCT

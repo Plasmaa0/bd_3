@@ -67,7 +67,7 @@ export function ProjectPage() {
             dataIndex: 'ext',
             key: 'ext',
             render: (text: string) => {
-                return text.split(',').map((item) => {
+                return text?.split(',').map((item) => {
                     return (
                         <Tag key={item} color={UniqueColorFromString(item)}>{item}</Tag>
                     );
@@ -102,7 +102,7 @@ export function ProjectPage() {
                     <Space size="middle" direction="horizontal"
                            style={{display: "flex", justifyContent: "space-between"}}>
                         <Space size="small">
-                            {text.split(',').map((item) => {
+                            {text?.split(',').map((item) => {
                                 return (
                                     <Tag key={item} color={UniqueColorFromString(item)}>{item}</Tag>
                                 );
@@ -171,7 +171,7 @@ export function ProjectPage() {
 
     };
 
-
+console.log(data)
     return (
         <div>
             <PageBreadcrumb setNeedToRefetch={setNeedToRefetch}/>

@@ -8,6 +8,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import {Breadcrumb, Image, Typography} from "antd";
 import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
+import {FileDisplay} from "./FileDisplay";
 
 // @ts-ignore
 export function FileView() {
@@ -22,7 +23,7 @@ export function FileView() {
     while (loc.endsWith('/'))
         loc = loc.slice(0, -1);
 
-    const pathSnippets = useLocation().pathname.split('/').filter((i) => i)
+    const pathSnippets = useLocation().pathname.split('/').filter((i) => i) // fixme why is filter there?
     pathSnippets.shift()
     const extraBreadcrumbItems = pathSnippets.map((_, index) => {
         let url = `/${pathSnippets.slice(0, index + 1).join('/')}`;
@@ -31,7 +32,7 @@ export function FileView() {
         return (
             <Breadcrumb.Item key={url}>
                 <Link to={url}>
-                    {pathSnippets[index]}
+                    {decodeURI(pathSnippets[index])}
                 </Link>
             </Breadcrumb.Item>
         );
@@ -52,7 +53,7 @@ export function FileView() {
             .then((res) => res.data)
     );
 
-
+    loc = decodeURI(loc);
     if (isLoading) return (
         <div>
             <Breadcrumb>{breadcrumbItems}</Breadcrumb>
@@ -87,38 +88,10 @@ export function FileView() {
             </Typography.Text>
         </div>);
 
-    function ImageOrText() {
-        const image_formats = ['jpg', 'jpeg', 'jfif', 'pjpeg', 'pjp', 'png', 'svg']
-        for (let i = 0; i < image_formats.length; i++) {
-            const imageFormat = image_formats[i];
-            if (loc?.split('.')[1].includes(imageFormat)) {
-                return (
-                    <Image src={api_url + "/file/" + user + '/' + loc + '?' + new URLSearchParams({
-                        token: GetToken(),
-                        user: GetUser()
-                    })}></Image>
-                )
-            }
-        }
-        const convert_ext_to_name = (ext: string|undefined) => {
-            if (ext === 'js') {
-                return 'javascript'
-            }
-            return ext
-        }
-        return (
-            <div>
-                <SyntaxHighlighter language={convert_ext_to_name(loc?.split('.')?.pop())}>
-                    {data}
-                </SyntaxHighlighter>
-            </div>
-        )
-    }
-
     return (
-        <div>
+        <>
             <Breadcrumb>{breadcrumbItems}</Breadcrumb>
             <Typography.Title level={2}>FileView: user: {user} file: {loc}</Typography.Title>
-            <ImageOrText/>
-        </div>)
+            <FileDisplay loc={loc} data={data} user={user || ''}/>
+        </>)
 }
