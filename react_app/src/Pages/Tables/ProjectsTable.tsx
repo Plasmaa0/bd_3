@@ -5,8 +5,11 @@ import React from "react";
 
 //@ts-ignore
 export function ProjectsTable({data, isLoading}) {
+    const with_keys = data.map((value: any, index: any) => {
+        return {...value, 'key': index + 1}
+    })
     return (
-        <Table dataSource={data} pagination={{hideOnSinglePage: true}} loading={isLoading}>
+        <Table dataSource={with_keys} pagination={{hideOnSinglePage: true}} loading={isLoading}>
             <Table.Column
                 title="Project"
                 dataIndex="name"
