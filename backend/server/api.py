@@ -1,25 +1,16 @@
 import json
-import time
-import uuid
 from os import listdir
 from shutil import make_archive
-
 from fastapi import FastAPI, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from starlette.responses import JSONResponse
-
 import file_interactions
 from settings import DATA_DIR
-
-# from database_interactions import Database
-#
-# db = Database()
 from sqlalchemy_db import backend as db
-# db.init_db()
+
+db.init_db()
 db.update_class_tree()
-from database_interactions import Database
-# Database.reset_data_dir()
 
 app = FastAPI()
 
@@ -47,9 +38,9 @@ async def edit_tags(user_page: str, project_path: str, tags: str = '', user: str
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
 
     if db.update_tags(user_page, project_path, tags):
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content='updated tags successfully')
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content='Updated tags successfully')
     else:
-        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed to update tags")
+        return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="Failed to update tags")
 
 
 @app.get('/edit_role/{user_page}')
@@ -376,17 +367,6 @@ async def add_child_class(class_name: str = '', child_name: str = '', user: str 
                         content='Successfuly added child class ' + child_name + ' to ' + class_name)
 
 
-@app.get('/test')
-async def test_path():
-    try:
-        _err, _res = db.backend.query("SELECT 1+2;")
-    except Exception as e:
-        return 'bad(( ' + str(e)
-    if _err:
-        return 'bad ' + str(_res)
-    return "good!"
-
-
 @app.get('/download/{user_page}/{project_path:path}')
 async def download_project(user_page: str, project_path: str, user: str = '', token: str = '', ext: str = ''):
     success, msg = db.check_auth(user, token)  # todo check_auth vs chech_permissions_and_auth??!
@@ -418,13 +398,5 @@ async def download_project(user_page: str, project_path: str, user: str = '', to
 # чтобы админ мог перемещать проекты
 
 if __name__ == '__main__':
-    try:
-        err, res = db.backend.query("SELECT 1+2;")
-    except Exception as e:
-        print('bad((', e)
-    else:
-        if err:
-            print('bad', err)
-        else:
-            print("good!")
+    pass
     # uvicorn.run(app, port=8000, host='127.0.0.1')

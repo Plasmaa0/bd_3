@@ -46,6 +46,8 @@ def init_db(db: Session, sql_files: List[str] = []):
         print('Trying with prefix ../database/')
         with open(f'../database/{database_files}') as f:
             db.execute(text(f.read()))
+    else:
+        print('Database functions loaded')
     db.commit()
 
 
@@ -532,7 +534,7 @@ def link_project(db: Session, owner: str, project_path: str, classes: List[str])
 
 
 def find_projects_by_class(search_user: str, class_filter: List[str]):
-    return find_projects(search_user, '%', '%', class_filter, 1000, True) # todo fix limit
+    return find_projects(search_user, '%', '%', class_filter, 1000, True)  # todo fix limit
 
 
 @db_session

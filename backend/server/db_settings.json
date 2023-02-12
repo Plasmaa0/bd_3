@@ -1,7 +1,0 @@
-{
-  "ip": "virtual.fn11.bmstu.ru",
-  "port": "3004",
-  "db_name": "postgres",
-  "username": "postgres",
-  "password": "postgres"
-}
