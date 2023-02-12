@@ -10,6 +10,7 @@ from . import models, schemas
 # decorator that passes db session to function as first argument
 def db_session(func):
     from .database import SessionLocal
+
     def wrapper(*args, **kwargs):
         # fixme this is horrible implementation of getting session
         db = SessionLocal()
@@ -21,7 +22,7 @@ def db_session(func):
 
 
 @db_session
-def init_db(db: Session, sql_files: List[str] = []):
+def init_db(db: Session):
     from sqlalchemy import text
     from .database import engine
     db.execute(text("DROP TABLE IF EXISTS classification CASCADE;"
@@ -245,7 +246,8 @@ def get_project_page(db: Session, user: str, project_path: str) -> schemas.Proje
     # get info about subprojects in project
     db_project_subprojects = db.query(models.Projects) \
         .filter(models.Projects.owner == user,
-                models.Projects.parent_project == project_path).all()
+                # projects with path_to = project_path + '/' + project_name
+                models.Projects.path_to.like(project_path + '/' + models.Projects.name)).all()
     if db_project_subprojects:
         subprojects = []
         for index, db_project_subproject in enumerate(db_project_subprojects):
@@ -264,8 +266,13 @@ def get_project_page(db: Session, user: str, project_path: str) -> schemas.Proje
 def register_new_file(db: Session, user: str, project_path: str, file_name: str):
     db_file = models.Files(owner=user, path_to=project_path, name=file_name, parent_project=project_path.split('/')[-1])
     db.add(db_file)
-    db.commit()
-    db.refresh(db_file)
+    try:
+        db.commit()
+        db.refresh(db_file)
+    except:
+        return False
+    else:
+        return True
 
 
 @db_session
@@ -323,9 +330,9 @@ def create_project(db: Session, user: str, project_path: str, tags: str):
     db.add(db_project)
     try:
         db.commit()
+        db.refresh(db_project)
     except:
         return False
-    db.refresh(db_project)
     return True
 
 
@@ -523,6 +530,12 @@ def link_project(db: Session, owner: str, project_path: str, classes: List[str])
     :param classes: list of class names
     """
     for class_name in classes:
+        # check if already exists
+        if db.query(models.ProjectClasses).filter(models.ProjectClasses.owner == owner,
+                                                  models.ProjectClasses.path_to == project_path,
+                                                  models.ProjectClasses.class_name == class_name).first():
+            continue
+        # if not exists, create new link
         db_class = models.ProjectClasses(owner=owner,
                                          path_to=project_path,
                                          class_name=class_name

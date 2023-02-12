@@ -56,28 +56,46 @@ async def edit_role(user_page: str, new_role: str, user: str = '', token: str = 
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="Failed to update role")
 
 
+def handle_missing_dir(user_page: str, project_path: str, class_names: str = ''):
+    """
+    Creates directories and registers them in db
+    Also links project to classes
+    :param user_page: user page name
+    :param project_path: path to file
+    :param class_names: class names separated by '/'
+    :return: None
+    """
+    arr = project_path.split('/')
+    filename = arr.pop()
+    path_without_filename = '/'.join(arr)
+    file_interactions.create_directories(user_page, path_without_filename)  # ignoring errors on already exists
+    # if path_without_filename contains multiple dirs, they will be registered as separate projects
+    # example path_without_filename = 'dir1/dir2/dir3' will be registered as 3 projects
+    # first dir1, then dir1/dir2, then dir1/dir2/dir3
+    # works like mkdir -p flag in linux
+    for i in range(len(arr)):
+        db.create_project(user_page, '/'.join(arr[:i + 1]), '')
+        db.link_project(user_page, '/'.join(arr[:i + 1]), class_names.split('/'))
+    db.register_new_file(user_page, path_without_filename, filename)
+
+
 @app.post("/uploadfiles/{user_page}/{project_path:path}")
 async def create_upload_file(user_page: str, project_path: str, file: UploadFile, user: str = '',
                              token: str = '', overwrite: bool = False, create_missing_dir: str = '',
                              class_names: str = ''):
     success, msg = db.check_permissions_and_auth(user_page, user, token)
+    # time.sleep(0.1) # fixme delete this lineы
+    # return JSONResponse(headers=GLOBAL_HEADERS, status_code=random.choice([401, 200]), content=msg)
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=401, content=msg)
-
-    if not db.is_user_exist(user_page):  # FIXME user directory must be created when user registers
+    if not db.is_user_exist(user_page):
         print("no such user " + user_page)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content=("no such user " + user_page))
     try:
         user_project_path = f"{DATA_DIR}/{user_page}/{project_path}"
         filepath = f"{user_project_path}/{file.filename}"
         if create_missing_dir:
-            arr = project_path.split('/')
-            filename = arr.pop()
-            path_without_filename = '/'.join(arr)
-            file_interactions.create_directories(user_page, path_without_filename)  # ignoring errors on already exists
-            db.create_project(user_page, path_without_filename, '')  # ignoring errors on duplicates
-            db.link_project(user_page, path_without_filename, class_names.split('/'))
-            db.register_new_file(user_page, path_without_filename, filename)
+            handle_missing_dir(user_page, project_path, class_names)
             with open(user_project_path, "wb") as f:
                 f.write(await file.read())
         elif file.filename in listdir(user_project_path) and (not overwrite):
@@ -160,7 +178,6 @@ async def register_page(user: str = '', password: str = ''):
     if not success:
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500,
                             content="Internal server error. falied to register new user :(")
-    # fixme create user's directory
     file_interactions.create_user_directory(user)
     return JSONResponse(headers=GLOBAL_HEADERS, status_code=200,
                         content="Successful registration! Redirection to login page in 5 seconds...")

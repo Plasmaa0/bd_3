@@ -91,3 +91,27 @@ CREATE OR REPLACE TRIGGER cascade_deleting
 EXECUTE PROCEDURE remove_children();
 
 
+-- create check constraint that checks if the parent project exists on the same user
+CREATE OR REPLACE FUNCTION check_parent_exists() RETURNS trigger AS
+$$
+BEGIN
+    IF NEW.parent_project IS NOT NULL
+    THEN
+        IF NOT EXISTS(SELECT *
+                      FROM projects
+                      WHERE name = NEW.parent_project
+                        AND owner = NEW.owner)
+        THEN
+            RAISE EXCEPTION 'Parent project does not exist';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER check_parent_exists
+    BEFORE INSERT OR UPDATE
+    ON projects
+    FOR EACH ROW
+EXECUTE PROCEDURE check_parent_exists();
+
