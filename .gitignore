@@ -6,6 +6,7 @@
 /**/__pycache__
 /**/.pytest_cache
 /**/package-lock.json
+.env
 
 # Created by https://www.toptal.com/developers/gitignore/api/clion,pycharm,jetbrains+all,git,cmake,c++,database
 # Edit at https://www.toptal.com/developers/gitignore?templates=clion,pycharm,jetbrains+all,git,cmake,c++,database
