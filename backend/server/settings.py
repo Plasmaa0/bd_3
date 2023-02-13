@@ -10,11 +10,11 @@ DATA_DIR = 'data'
 
 @dataclasses.dataclass
 class PostgresConfig:
-    host: str
-    port: int
-    user: str
-    password: str
-    database: str
+    host: str = 'localhost'
+    port: int = 5432
+    user: str = 'postgres'
+    password: str = 'postgres'
+    database: str = 'postgres'
 
 
 def load_settings_from_file(path: str) -> PostgresConfig:
@@ -33,19 +33,18 @@ def load_settings_from_file(path: str) -> PostgresConfig:
 def load_settings_from_env() -> PostgresConfig:
     print('loading settings from env')
     settings = {
-        'ip': environ.get('POSTGRES_IP', 'localhost'),
-        'db_name': environ.get('POSTGRES_DB_NAME', 'postgres'),
-        'username': environ.get('POSTGRES_USERNAME', 'postgres'),
+        'host': environ.get('POSTGRES_IP', 'localhost'),
+        'database': environ.get('POSTGRES_DB', 'postgres'),
+        'user': environ.get('POSTGRES_USER', 'postgres'),
         'password': environ.get('POSTGRES_PASSWORD', 'postgres'),
         'port': environ.get('POSTGRES_PORT', 5432)
     }
-    print(settings)
     return PostgresConfig(
-        host=settings['ip'],
+        host=settings['host'],
+        database=settings['database'],
+        user=settings['user'],
         port=settings['port'],
-        user=settings['username'],
         password=settings['password'],
-        database=settings['db_name']
     )
 
 
@@ -54,3 +53,11 @@ def load_settings() -> PostgresConfig:
     if not config:
         config = load_settings_from_file('db_settings.json')
     return config
+
+def make_url() -> str:
+    config = load_settings()
+    print(config)
+    port = f':{config.port}' if config.port else ''
+    url = f"postgresql://{config.user}:{config.password}@{config.host}{port}/{config.database}"
+    return url
+
