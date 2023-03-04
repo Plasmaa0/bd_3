@@ -328,7 +328,7 @@ export function ClassTreeSearch() {
                                         uploadState.file_count > 0 &&
                                         <Collapse.Panel
                                             header={
-                                                <Typography.Text><UnorderedListOutlined/>Success files</Typography.Text>
+                                                <Typography.Text><UnorderedListOutlined/>All files</Typography.Text>
                                             }
                                             key="1"
                                         >

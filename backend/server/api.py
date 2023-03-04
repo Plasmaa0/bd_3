@@ -346,6 +346,9 @@ async def download_project(user_page: str, project_path: str, ext: str = ''):
         print(e)
         return JSONResponse(headers=GLOBAL_HEADERS, status_code=500, content="failed to create zip archive")
 
+@app.get('/test')
+async def test():
+    return JSONResponse(headers=GLOBAL_HEADERS, status_code=200, content="test")
 
 # настройкst_pathи
 # папка DATA чтобы можно было обозначить
