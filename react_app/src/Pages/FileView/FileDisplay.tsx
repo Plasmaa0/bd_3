@@ -22,8 +22,7 @@ function DisplayPlainText(loc: string, data: any) {
     return <div>
         <SyntaxHighlighter language={convert_ext_to_name(loc?.split('.')?.pop())}
                            style={isDarkTheme() ? dark : light}>
-
-            {data}
+            {loc.endsWith('json') ? JSON.stringify(data, null, 4) : data }
         </SyntaxHighlighter>
     </div>
 }
