@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Link, Route, Routes, useLocation, useParams} from "react-router-dom";
-import {message, Space, Tag, Typography, UploadProps} from "antd";
+import {Button, Col, message, Row, Space, Tag, Tooltip, Typography, UploadProps} from "antd";
 import {useQuery} from "@tanstack/react-query";
 import get from "axios";
 import {UniqueColorFromString} from "../Util/Utils";
@@ -10,6 +10,7 @@ import {ProjectPageContent} from "./ProjectPageContent";
 import {PageBreadcrumb} from "./PageBreadcrumb";
 import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
+import {DownloadOutlined} from "@ant-design/icons";
 
 // @ts-ignore
 export function ProjectPage() {
@@ -52,20 +53,38 @@ export function ProjectPage() {
             key: 'name',
             // @ts-ignore
             render: (text: string) =>
-                <Space size="middle" direction="horizontal" style={{display: "flex", justifyContent: "space-between"}}>
-                    <Link to={'/file/' + user + '/' + loc + '/' + text}>
-                        {text}
-                    </Link>
-                    <DeleteButton type="rm"
-                                  user={user}
-                                  setNeedToRefetch={setNeedToRefetch}
-                                  location={loc + '/' + text}/>
-                </Space>
+                <Row justify={"space-between"} gutter={[16, 24]}>
+                    <Col>
+                        <Link to={'/file/' + user + '/' + loc + '/' + text}>
+                            {text}
+                        </Link>
+                    </Col>
+                    <Space size="middle" direction="horizontal"
+                           style={{display: "flex", justifyContent: "space-between"}}>
+                        <Tooltip title="Download file" placement="left">
+                            <Button type="primary"
+                                    shape="round"
+                                    icon={<DownloadOutlined/>}
+                                    size='middle'
+                                    download={`${text}`}
+                                    href={`${api_url}/file/${user}/${loc}/${text}?` + new URLSearchParams({
+                                        user: GetUser(),
+                                        token: GetToken(),
+                                    })}
+                            />
+                        </Tooltip>
+                        <DeleteButton type="rm"
+                                      user={user}
+                                      setNeedToRefetch={setNeedToRefetch}
+                                      location={loc + '/' + text}/>
+                    </Space>
+                </Row>
         },
         {
             title: 'Extension',
             dataIndex: 'ext',
             key: 'ext',
+            responsive: ['xxl', 'xl', 'lg', 'md'],
             render: (text: string) => {
                 return text?.split(',').map((item) => {
                     return (
@@ -171,7 +190,6 @@ export function ProjectPage() {
 
     };
 
-console.log(data)
     return (
         <div>
             <PageBreadcrumb setNeedToRefetch={setNeedToRefetch}/>
