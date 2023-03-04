@@ -4,7 +4,7 @@ from typing import Tuple, List
 
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import models, schemas, security
 
 
 # decorator that passes db session to function as first argument
@@ -126,7 +126,7 @@ def check_permissions_and_auth(db: Session, page: str, user: str, token: str) ->
 def is_password_correct(db: Session, user: str, password: str):
     db_user = db.query(models.Users).filter(models.Users.name == user).first()
     if db_user:
-        return db_user.password == password
+        return security.check_hash(password, db_user.password)
     return False
 
 
@@ -140,7 +140,7 @@ def register_new_user(db: Session, user: str, password: str) -> bool:
     if not first_user_registered:
         role = 'admin'
         first_user_registered = True
-    db_user = models.Users(name=user, password=password, role=role)
+    db_user = models.Users(name=user, password=security.hash_data(password), role=role)
     db.add(db_user)
     try:
         db.commit()
@@ -341,6 +341,8 @@ def update_tags(db: Session, user: str, project_path: str, tags: str):
     db_project = db.query(models.Projects) \
         .filter(models.Projects.owner == user,
                 models.Projects.path_to == project_path).first()
+    if db_project is None:
+        return False
     db_project.tags = tags
     try:
         db.commit()
