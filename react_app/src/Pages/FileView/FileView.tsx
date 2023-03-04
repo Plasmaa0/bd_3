@@ -5,7 +5,7 @@ import get from "axios";
 //@ts-ignore
 import SyntaxHighlighter from 'react-syntax-highlighter';
 
-import {Breadcrumb, Image, Typography} from "antd";
+import {Breadcrumb, Typography} from "antd";
 import {api_url} from "../../Config";
 import {GetToken, GetUser} from "../../Functions/DataStoring";
 import {FileDisplay} from "./FileDisplay";
@@ -44,7 +44,7 @@ export function FileView() {
     ].concat(extraBreadcrumbItems);
 
     loc = loc.slice(loc.indexOf('/') + 1);
-    console.log(loc)
+    // console.log(loc)
     const {isLoading, isFetching, error, data} = useQuery(["fileData"], () =>
         get(api_url + "/file/" + user + '/' + loc + '?' + new URLSearchParams({
             token: GetToken(),
