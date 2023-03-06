@@ -12,6 +12,7 @@ import {UserPage} from "../UserPage/UserPage";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {FileView} from "../FileView/FileView";
 import {ConfigProvider, Layout, theme, Typography} from "antd";
+import ruRU from 'antd/locale/ru_RU'
 import {SearchForm} from "../SearchPage/SearchForm";
 import {ClassTreeSearch} from "../ClassTree/ClassTreeSearch";
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
@@ -46,7 +47,7 @@ export function App() {
     // return (<TestPage/>); //fixme delete this
     if (!token || !user) {
         return (
-            <ConfigProvider theme={{algorithm: isDarkTheme() ? darkAlgorithm : defaultAlgorithm}}>
+            <ConfigProvider theme={{algorithm: isDarkTheme() ? darkAlgorithm : defaultAlgorithm}} locale={ruRU}>
                 <Layout className="box" style={{minHeight: "100vh"}}>
                     <QueryClientProvider client={queryClient}>
                         <BrowserRouter>
@@ -69,7 +70,7 @@ export function App() {
         )
     }
     return (
-        <ConfigProvider theme={{algorithm: isDarkTheme() ? darkAlgorithm : defaultAlgorithm}}>
+        <ConfigProvider theme={{algorithm: isDarkTheme() ? darkAlgorithm : defaultAlgorithm}} locale={ruRU}>
             <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
                     <Layout className="box" style={{minHeight: "100vh"}}>
