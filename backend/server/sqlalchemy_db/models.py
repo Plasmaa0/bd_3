@@ -3,6 +3,7 @@ from sqlalchemy import \
     String, \
     ForeignKey, \
     Integer, \
+    Boolean, \
     TIMESTAMP, \
     UUID, \
     UniqueConstraint, \
@@ -99,6 +100,11 @@ class Files(Base):
                f"path_to='{self.path_to}')"
 
 
+class Configuration(Base):
+    __tablename__ = 'configuration'
+
+    first_user_registered = Column(Boolean)
+    
 class Tokens(Base):
     __tablename__ = 'tokens'
 
