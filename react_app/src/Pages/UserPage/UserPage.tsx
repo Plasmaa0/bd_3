@@ -15,7 +15,7 @@ export function UserPage() {
     const {user} = useParams<string>();
     const [needToRefetch, setNeedToRefetch] = useState(true);
     const {isLoading, error, data, isFetching, refetch} = useQuery(["userPageData"], () =>
-        get(api_url + "/dir/" + user + '?' + new URLSearchParams({token: GetToken(), user: GetUser()}))
+        get(`${api_url}/dir/${user}?` + new URLSearchParams({token: GetToken(), user: GetUser()}))
             .then((res) => res.data)
     );
     useEffect(() => {

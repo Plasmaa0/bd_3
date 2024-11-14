@@ -5,13 +5,13 @@ from shutil import make_archive
 import fastapi
 from fastapi import FastAPI, UploadFile, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from starlette.responses import JSONResponse
 import file_interactions
 from settings import DATA_DIR
 from sqlalchemy_db import backend as db
 
-db.init_db()
+# db.init_db()
 db.update_class_tree()
 
 app = FastAPI()
